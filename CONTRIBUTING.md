@@ -87,6 +87,8 @@ For a pre-commit style check on staged content, run:
 npm run check:secrets -- --staged
 ```
 
+Dependency review also runs automatically on pull requests to catch newly introduced vulnerable dependency changes.
+
 ## Changing the API Contract
 
 If you modify request or response shapes:

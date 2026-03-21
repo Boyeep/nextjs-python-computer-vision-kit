@@ -1,0 +1,7 @@
+# Keep the initial policy focused on risky dependency changes first.
+# If you want stricter license enforcement later, add allow-licenses here.
+fail-on-severity: high
+fail-on-scopes:
+  - runtime
+  - unknown
+license-check: true

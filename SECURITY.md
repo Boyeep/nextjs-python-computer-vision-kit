@@ -31,6 +31,7 @@ The repository also uses automated scanning to help catch common security issues
 
 - `gitleaks` in CI for tracked git content
 - CodeQL code scanning on GitHub for JavaScript/TypeScript, Python, and workflow files
+- GitHub dependency review on pull requests for newly introduced vulnerable dependency changes
 
 Those checks do not replace private disclosure. If you believe a vulnerability is real or
 exploitable, please still report it through a private advisory.

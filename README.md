@@ -120,6 +120,8 @@ The root check runs:
 
 CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
 
+Pull requests also run GitHub dependency review so new vulnerable dependency changes are easier to catch before merge.
+
 ## Releases
 
 - Release Drafter keeps a draft release updated from merged pull requests on `main` and can auto-label incoming pull requests by path.
