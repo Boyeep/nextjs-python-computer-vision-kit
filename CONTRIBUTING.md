@@ -101,5 +101,8 @@ If you modify request or response shapes:
 3. Apply `minor` or `major` to a pull request when the default patch bump is not enough.
 4. Push a semver tag like `v0.1.0`.
 5. Wait for the release workflow to verify the repo, publish GHCR images, and create the GitHub Release.
+6. Confirm the release smoke workflow passes against the published images, or dispatch it manually for a tag if you need to re-check a release.
 
 The component labels used by Release Drafter are synced from `.github/labels.json`, and most of the common ones are applied automatically from changed paths.
+
+To run the same image smoke check locally, set `BACKEND_IMAGE` and `FRONTEND_IMAGE`, then run `npm run check:release-smoke`.

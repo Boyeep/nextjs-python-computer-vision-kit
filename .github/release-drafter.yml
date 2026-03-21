@@ -74,8 +74,10 @@ autolabeler:
       - ".github/release-drafter.yml"
       - ".github/workflows/release-drafter.yml"
       - ".github/workflows/release.yml"
+      - ".github/workflows/release-smoke.yml"
       - ".github/workflows/sync-labels.yml"
       - ".github/labels.json"
+      - "scripts/check-release-smoke.mjs"
   - label: infra
     files:
       - "scripts/**"

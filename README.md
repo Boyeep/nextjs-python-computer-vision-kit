@@ -119,6 +119,8 @@ The root check runs:
 - Release Drafter defaults to a patch bump unless a maintainer applies `minor` or `major` to the pull request.
 - Pushing a tag like `v0.1.0` triggers the release workflow.
 - That workflow verifies the tagged commit, publishes backend/frontend images to GHCR, and creates a GitHub Release with generated notes.
+- A follow-up smoke workflow pulls those published GHCR images and checks backend health, a real inference request, and the frontend shell before you treat the release as healthy.
+- Maintainers can re-run the same check manually with `BACKEND_IMAGE=... FRONTEND_IMAGE=... npm run check:release-smoke`.
 
 ## Contract Notes
 
