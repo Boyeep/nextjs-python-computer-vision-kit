@@ -4,6 +4,8 @@ Reusable internal features from this repo that are worth carrying into other sta
 
 This file is intentionally repo-builder focused. It is not the product roadmap. It is a reference for "what made this template solid internally" so the same moves can be reused in future kits.
 
+If you want the shorter copy-forward version, see `template-playbook.md`.
+
 ## Core Idea
 
 This repo ended up with two layers:
