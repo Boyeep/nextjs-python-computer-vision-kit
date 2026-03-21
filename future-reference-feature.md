@@ -22,6 +22,7 @@ The template-grade layer is the part worth reusing almost anywhere:
 - split CI
 - release automation
 - security scanning
+- license reporting
 - repo governance
 - image/build verification
 - smoke testing after release
@@ -65,6 +66,7 @@ Files:
 - `scripts/check-release-smoke.mjs`
 - `scripts/check-actionlint.mjs`
 - `scripts/check-secrets.mjs`
+- `scripts/report-licenses.mjs`
 - `package.json`
 
 Why it matters:
@@ -213,14 +215,17 @@ Generic takeaway:
 Files:
 
 - `scripts/check-secrets.mjs`
+- `scripts/report-licenses.mjs`
 - `.github/workflows/template-ci.yml`
 - `.github/workflows/codeql.yml`
+- `.github/workflows/license-report.yml`
 - `SECURITY.md`
 
 What it covers here:
 
 - tracked git content scanned with `gitleaks`
 - CodeQL scanning for JavaScript/TypeScript, Python, and workflow files
+- generated license inventories for npm and Python dependencies
 - private disclosure guidance
 
 Why it matters:
@@ -233,6 +238,7 @@ Generic takeaway:
 
 - secret scanning is a near-default for public repos
 - CodeQL or equivalent static analysis is a strong baseline for maintained starters
+- non-blocking license reporting is a good bridge before stricter allowlist enforcement
 
 ### 9. Workflow Linting
 

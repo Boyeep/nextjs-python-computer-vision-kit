@@ -11,6 +11,7 @@
     "check:release-smoke": "node scripts/check-release-smoke.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
     "check:workflows": "node scripts/check-actionlint.mjs",
+    "report:licenses": "node scripts/report-licenses.mjs",
     "check": "node scripts/check.mjs"
   },
   "keywords": [

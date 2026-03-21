@@ -87,6 +87,14 @@ For a pre-commit style check on staged content, run:
 npm run check:secrets -- --staged
 ```
 
+If you want a full dependency license inventory locally, run:
+
+```bash
+npm run report:licenses
+```
+
+That command writes generated reports into `reports/licenses/`.
+
 Dependency review also runs automatically on pull requests to catch newly introduced vulnerable dependency changes.
 
 ## Changing the API Contract

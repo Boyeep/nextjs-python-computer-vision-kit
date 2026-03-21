@@ -34,11 +34,13 @@ If a template only has code and no repo workflow, it is usually still a prototyp
 - `check:images` if the repo ships deployable containers
 - `check:workflows`
 - `check:secrets`
+- `report:licenses` if the repo has third-party dependencies worth auditing
 
 ### CI
 
 - workflow lint
 - secret scan
+- dependency review on pull requests
 - app verification
 - cross-platform check if relevant
 - packaging or Docker build check if relevant
@@ -74,7 +76,9 @@ soon.md
 .github/ISSUE_TEMPLATE/*
 .github/release-drafter.yml
 .github/labels.json
+.github/dependency-review-config.yml
 .github/workflows/template-ci.yml
+.github/workflows/dependency-review.yml
 .github/workflows/release-drafter.yml
 .github/workflows/release.yml
 .github/workflows/release-smoke.yml
@@ -84,6 +88,7 @@ scripts/dev.mjs
 scripts/check.mjs
 scripts/check-actionlint.mjs
 scripts/check-secrets.mjs
+scripts/report-licenses.mjs
 ```
 
 Add these if relevant:
@@ -149,6 +154,8 @@ If you want the version that scales better for open source or long-term reuse, a
 - published artifacts should get smoke-tested
 - workflows should be linted
 - secrets should be scanned
+- dependency changes should be reviewed on pull requests
+- dependency licenses should be reportable without manual digging
 - release steps should be automated
 - docs should explain maintainer flow, not just user setup
 

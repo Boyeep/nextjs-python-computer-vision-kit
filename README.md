@@ -96,6 +96,7 @@ npm run dev:down
 npm run api:types
 npm run check:contract
 npm run check:images
+npm run report:licenses
 npm run check:secrets
 npm run check:workflows
 npm run check
@@ -114,6 +115,8 @@ The root check runs:
 
 `check:images` is separate and intended for environments where a Docker daemon is available.
 
+`report:licenses` generates local npm and Python license inventories in `reports/licenses/`.
+
 `check:secrets` scans tracked git content with a pinned `gitleaks` version via Go.
 
 `check:workflows` lints `.github/workflows/` with a pinned `actionlint` version via Go.
@@ -121,6 +124,8 @@ The root check runs:
 CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
 
 Pull requests also run GitHub dependency review so new vulnerable dependency changes are easier to catch before merge.
+
+A separate GitHub workflow generates license-report artifacts for the root workspace, frontend workspace, and backend Python environment.
 
 ## Releases
 
