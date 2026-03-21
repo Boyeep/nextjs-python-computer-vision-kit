@@ -134,6 +134,7 @@ If you modify request or response shapes:
 6. Confirm the release smoke workflow passes against the published images, or dispatch it manually for a tag if you need to re-check a release.
 
 The release notes will also include links to the image provenance attestations generated during the publish workflow.
+The release itself will also carry attached SPDX SBOM files for the source tree and the published runner images.
 
 The component labels used by Release Drafter are synced from `.github/labels.json`, and most of the common ones are applied automatically from changed paths.
 

@@ -63,6 +63,8 @@ jobs:
     outputs:
       backend-attestation-url: ${{ steps.attest-backend.outputs.attestation-url }}
       frontend-attestation-url: ${{ steps.attest-frontend.outputs.attestation-url }}
+      backend-digest: ${{ steps.push-backend.outputs.digest }}
+      frontend-digest: ${{ steps.push-frontend.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -152,17 +154,66 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set lowercase owner
         id: vars
         run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare release asset directory
+        run: mkdir -p dist/release-assets
+        shell: bash
+
+      - name: Generate source SBOM asset
+        uses: anchore/sbom-action@v0.20.9
+        with:
+          path: .
+          format: spdx-json
+          syft-version: v1.41.2
+          output-file: dist/release-assets/repo-source-${{ github.ref_name }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate backend image SBOM asset
+        uses: anchore/sbom-action@v0.20.9
+        with:
+          image: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-backend@${{ needs.publish-images.outputs.backend-digest }}
+          format: spdx-json
+          syft-version: v1.41.2
+          output-file: dist/release-assets/backend-runner-${{ github.ref_name }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate frontend image SBOM asset
+        uses: anchore/sbom-action@v0.20.9
+        with:
+          image: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-frontend@${{ needs.publish-images.outputs.frontend-digest }}
+          format: spdx-json
+          syft-version: v1.41.2
+          output-file: dist/release-assets/frontend-runner-${{ github.ref_name }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           append_body: true
+          files: |
+            dist/release-assets/repo-source-${{ github.ref_name }}.spdx.json
+            dist/release-assets/backend-runner-${{ github.ref_name }}.spdx.json
+            dist/release-assets/frontend-runner-${{ github.ref_name }}.spdx.json
           body: |
             ## Published Images
 
@@ -173,3 +224,17 @@ jobs:
 
             - Backend image: ${{ needs.publish-images.outputs.backend-attestation-url }}
             - Frontend image: ${{ needs.publish-images.outputs.frontend-attestation-url }}
+
+            ## Attached SBOM Assets
+
+            - `repo-source-${{ github.ref_name }}.spdx.json`
+            - `backend-runner-${{ github.ref_name }}.spdx.json`
+            - `frontend-runner-${{ github.ref_name }}.spdx.json`
+
+            ## Verification
+
+            ```bash
+            docker login ghcr.io
+            gh attestation verify oci://ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-backend:${{ github.ref_name }} -R ${{ github.repository }}
+            gh attestation verify oci://ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-frontend:${{ github.ref_name }} -R ${{ github.repository }}
+            ```

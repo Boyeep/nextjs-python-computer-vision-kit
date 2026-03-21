@@ -139,6 +139,7 @@ An SBOM workflow also publishes SPDX artifacts for the repository source plus th
 - Pushing a tag like `v0.1.0` triggers the release workflow.
 - That workflow verifies the tagged commit, publishes backend/frontend images to GHCR, and creates a GitHub Release with generated notes.
 - The release workflow also generates build-provenance attestations for the published GHCR images and links them from the release notes.
+- The GitHub Release also includes attached SPDX SBOM assets for the source tree and both runner images.
 - A follow-up smoke workflow pulls those published GHCR images and checks backend health, a real inference request, and the frontend shell before you treat the release as healthy.
 - Maintainers can re-run the same check manually with `BACKEND_IMAGE=... FRONTEND_IMAGE=... npm run check:release-smoke`.
 
