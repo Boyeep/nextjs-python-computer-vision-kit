@@ -69,6 +69,12 @@ If Docker is available locally, you can also verify the production-style images:
 npm run check:images
 ```
 
+If Go is available locally, you can also lint GitHub Actions workflows:
+
+```bash
+npm run check:workflows
+```
+
 ## Changing the API Contract
 
 If you modify request or response shapes:

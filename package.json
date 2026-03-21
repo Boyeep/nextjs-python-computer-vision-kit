@@ -9,6 +9,7 @@
     "check:contract": "node scripts/check-contract-drift.mjs",
     "check:images": "node scripts/check-docker-builds.mjs",
     "check:release-smoke": "node scripts/check-release-smoke.mjs",
+    "check:workflows": "node scripts/check-actionlint.mjs",
     "check": "node scripts/check.mjs"
   },
   "keywords": [

@@ -49,6 +49,7 @@ Use these commands before finishing work:
 
 ```bash
 npm run check:contract
+npm run check:workflows
 npm run check
 ```
 
