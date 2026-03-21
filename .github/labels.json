@@ -1,0 +1,62 @@
+[
+  {
+    "name": "frontend",
+    "color": "0e7490",
+    "description": "Changes focused on the Next.js app or UI flows."
+  },
+  {
+    "name": "ui",
+    "color": "0891b2",
+    "description": "Visual presentation, overlays, or interaction changes."
+  },
+  {
+    "name": "backend",
+    "color": "166534",
+    "description": "Changes focused on the FastAPI service or vision logic."
+  },
+  {
+    "name": "api",
+    "color": "15803d",
+    "description": "OpenAPI contract, schemas, or request-response behavior."
+  },
+  {
+    "name": "ci",
+    "color": "4f46e5",
+    "description": "Continuous integration or workflow changes."
+  },
+  {
+    "name": "release",
+    "color": "7c3aed",
+    "description": "Release automation, packaging, or publish flow changes."
+  },
+  {
+    "name": "infra",
+    "color": "4338ca",
+    "description": "Developer tooling, scripts, or environment setup changes."
+  },
+  {
+    "name": "docs",
+    "color": "ca8a04",
+    "description": "Documentation-only changes."
+  },
+  {
+    "name": "chore",
+    "color": "6b7280",
+    "description": "Maintenance work with little or no product impact."
+  },
+  {
+    "name": "patch",
+    "color": "1d4ed8",
+    "description": "Patch-level release bump."
+  },
+  {
+    "name": "minor",
+    "color": "2563eb",
+    "description": "Minor release bump."
+  },
+  {
+    "name": "major",
+    "color": "b91c1c",
+    "description": "Major release bump."
+  }
+]

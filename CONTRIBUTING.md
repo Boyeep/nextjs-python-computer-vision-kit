@@ -69,6 +69,36 @@ If Docker is available locally, you can also verify the production-style images:
 npm run check:images
 ```
 
+If Go is available locally, you can also lint GitHub Actions workflows:
+
+```bash
+npm run check:workflows
+```
+
+If Go is available locally, you can also scan tracked git content for secrets:
+
+```bash
+npm run check:secrets
+```
+
+For a pre-commit style check on staged content, run:
+
+```bash
+npm run check:secrets -- --staged
+```
+
+If you want a full dependency license inventory locally, run:
+
+```bash
+npm run report:licenses
+```
+
+That command writes generated reports into `reports/licenses/`.
+
+Dependency review also runs automatically on pull requests to catch newly introduced vulnerable dependency changes.
+
+That dependency review config also includes an allowlist for the licenses already present in the current dependency tree. If you intentionally add a dependency under a new acceptable license, update `.github/dependency-review-config.yml` in the same pull request.
+
 ## Changing the API Contract
 
 If you modify request or response shapes:
@@ -93,3 +123,19 @@ If you modify request or response shapes:
 - Mention contract changes explicitly.
 - Include screenshots when UI behavior changes.
 - Add or update tests when backend behavior changes.
+
+## Maintainer Release Flow
+
+1. Merge pull requests into `main`.
+2. Let Release Drafter refresh the draft release and category buckets.
+3. Apply `minor` or `major` to a pull request when the default patch bump is not enough.
+4. Push a semver tag like `v0.1.0`.
+5. Wait for the release workflow to verify the repo, publish GHCR images, and create the GitHub Release.
+6. Confirm the release smoke workflow passes against the published images, or dispatch it manually for a tag if you need to re-check a release.
+
+The release notes will also include links to the image provenance attestations generated during the publish workflow.
+The release itself will also carry attached SPDX SBOM files for the source tree and the published runner images.
+
+The component labels used by Release Drafter are synced from `.github/labels.json`, and most of the common ones are applied automatically from changed paths.
+
+To run the same image smoke check locally, set `BACKEND_IMAGE` and `FRONTEND_IMAGE`, then run `npm run check:release-smoke`.

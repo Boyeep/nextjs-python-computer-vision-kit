@@ -96,6 +96,9 @@ npm run dev:down
 npm run api:types
 npm run check:contract
 npm run check:images
+npm run report:licenses
+npm run check:secrets
+npm run check:workflows
 npm run check
 ```
 
@@ -111,6 +114,34 @@ The root check runs:
 - backend `compileall`
 
 `check:images` is separate and intended for environments where a Docker daemon is available.
+
+`report:licenses` generates local npm and Python license inventories in `reports/licenses/`.
+
+`check:secrets` scans tracked git content with a pinned `gitleaks` version via Go.
+
+`check:workflows` lints `.github/workflows/` with a pinned `actionlint` version via Go.
+
+CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
+
+Pull requests also run GitHub dependency review so new vulnerable dependency changes are easier to catch before merge.
+
+A separate GitHub workflow generates license-report artifacts for the root workspace, frontend workspace, and backend Python environment.
+
+The dependency-review config also keeps a conservative allowlist of licenses already present in the current dependency tree, so tightening policy does not start by breaking routine updates.
+
+An SBOM workflow also publishes SPDX artifacts for the repository source plus the frontend and backend runner images.
+
+## Releases
+
+- Release Drafter keeps a draft release updated from merged pull requests on `main` and can auto-label incoming pull requests by path.
+- Path-based labels help sort PRs into frontend, backend, CI/CD, docs, and maintenance categories automatically.
+- Release Drafter defaults to a patch bump unless a maintainer applies `minor` or `major` to the pull request.
+- Pushing a tag like `v0.1.0` triggers the release workflow.
+- That workflow verifies the tagged commit, publishes backend/frontend images to GHCR, and creates a GitHub Release with generated notes.
+- The release workflow also generates build-provenance attestations for the published GHCR images and links them from the release notes.
+- The GitHub Release also includes attached SPDX SBOM assets for the source tree and both runner images.
+- A follow-up smoke workflow pulls those published GHCR images and checks backend health, a real inference request, and the frontend shell before you treat the release as healthy.
+- Maintainers can re-run the same check manually with `BACKEND_IMAGE=... FRONTEND_IMAGE=... npm run check:release-smoke`.
 
 ## Contract Notes
 
