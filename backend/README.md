@@ -29,3 +29,6 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 python -m ruff check .
 python -m pytest
 ```
+
+The backend test suite now includes committed image fixtures and snapshot-backed API
+regression checks for the starter inference routes.

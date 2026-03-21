@@ -93,6 +93,7 @@ npm run dev
 npm run dev:down
 npm run api:types
 npm run check:contract
+npm run check:images
 npm run check
 ```
 
@@ -106,6 +107,8 @@ The root check runs:
 - backend Ruff lint
 - backend `pytest`
 - backend `compileall`
+
+`check:images` is separate and intended for environments where a Docker daemon is available.
 
 ## Contract Notes
 

@@ -63,6 +63,12 @@ What they cover:
 - `check:contract`: regenerates frontend API types and fails if generated files drift from `docs/openapi.yaml`
 - `check`: frontend lint, frontend typecheck, frontend production build, backend Ruff lint, backend tests, backend bytecode compile
 
+If Docker is available locally, you can also verify the production-style images:
+
+```bash
+npm run check:images
+```
+
 ## Changing the API Contract
 
 If you modify request or response shapes:

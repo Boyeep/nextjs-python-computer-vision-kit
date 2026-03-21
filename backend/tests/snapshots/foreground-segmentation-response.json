@@ -1,0 +1,134 @@
+{
+  "analysis_id": "<analysis-id>",
+  "pipeline": {
+    "id": "foreground-segmentation",
+    "name": "Foreground Segmentation",
+    "summary": "Segmentation extension pipeline that returns region polygons plus detection-style boxes.",
+    "tags": [
+      "segmentation",
+      "extension",
+      "cpu"
+    ],
+    "runtime": "opencv-cpu",
+    "sample_outputs": [
+      "region polygons",
+      "mask coverage",
+      "derived boxes"
+    ]
+  },
+  "image": {
+    "filename": "segmentation-scene.png",
+    "content_type": "image/png",
+    "width": 320,
+    "height": 240
+  },
+  "detections": [
+    {
+      "label": "segment-region",
+      "confidence": 0.734,
+      "box": {
+        "x": 51,
+        "y": 71,
+        "width": 107,
+        "height": 107
+      },
+      "area_ratio": 0.117
+    },
+    {
+      "label": "segment-region",
+      "confidence": 0.651,
+      "box": {
+        "x": 197,
+        "y": 74,
+        "width": 87,
+        "height": 130
+      },
+      "area_ratio": 0.0753
+    }
+  ],
+  "segmentations": [
+    {
+      "label": "segment-region",
+      "confidence": 0.734,
+      "polygon": [
+        {
+          "x": 94,
+          "y": 71
+        },
+        {
+          "x": 60,
+          "y": 93
+        },
+        {
+          "x": 51,
+          "y": 134
+        },
+        {
+          "x": 73,
+          "y": 168
+        },
+        {
+          "x": 114,
+          "y": 177
+        },
+        {
+          "x": 148,
+          "y": 155
+        },
+        {
+          "x": 157,
+          "y": 114
+        },
+        {
+          "x": 135,
+          "y": 80
+        }
+      ],
+      "box": {
+        "x": 51,
+        "y": 71,
+        "width": 107,
+        "height": 107
+      },
+      "area_ratio": 0.117
+    },
+    {
+      "label": "segment-region",
+      "confidence": 0.651,
+      "polygon": [
+        {
+          "x": 212,
+          "y": 74
+        },
+        {
+          "x": 197,
+          "y": 203
+        },
+        {
+          "x": 283,
+          "y": 156
+        }
+      ],
+      "box": {
+        "x": 197,
+        "y": 74,
+        "width": 87,
+        "height": 130
+      },
+      "area_ratio": 0.0753
+    }
+  ],
+  "metrics": [
+    {
+      "name": "segmented_regions",
+      "value": 2,
+      "unit": null
+    },
+    {
+      "name": "segmented_coverage",
+      "value": 0.1923,
+      "unit": null
+    }
+  ],
+  "generated_at": "<generated-at>"
+}
