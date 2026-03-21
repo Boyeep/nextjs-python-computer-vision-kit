@@ -118,6 +118,8 @@ The root check runs:
 
 `check:workflows` lints `.github/workflows/` with a pinned `actionlint` version via Go.
 
+CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
+
 ## Releases
 
 - Release Drafter keeps a draft release updated from merged pull requests on `main` and can auto-label incoming pull requests by path.
