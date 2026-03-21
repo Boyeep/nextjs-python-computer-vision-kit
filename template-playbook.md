@@ -68,7 +68,7 @@ Build the second layer early, not after the repo gets messy.
 
 - workflow lint
 - secret scan
-- dependency review on pull requests
+- optional dependency review on pull requests if it stays low-noise for the repo
 - license reporting when dependency visibility matters
 - SBOM generation for source or publishable artifacts when relevant
 - app verification
@@ -292,8 +292,6 @@ Keep:
 - `scripts/report-licenses.mjs`
 - `.github/workflows/template-ci.yml`
 - `.github/workflows/codeql.yml`
-- `.github/workflows/dependency-review.yml`
-- `.github/dependency-review-config.yml`
 - `.github/workflows/license-report.yml`
 - `.github/workflows/sbom.yml`
 - `SECURITY.md`
@@ -302,7 +300,7 @@ What it should cover:
 
 - tracked git content scanned with `gitleaks` or equivalent
 - CodeQL or equivalent static analysis
-- dependency review on pull requests
+- optional dependency review on pull requests if it behaves cleanly for the dependency ecosystems in the repo
 - generated license inventories for package ecosystems in the repo
 - SBOM artifacts for source and release artifacts
 - private disclosure guidance
@@ -317,7 +315,7 @@ Generic takeaway:
 
 - secret scanning is a near-default for public repos
 - CodeQL or equivalent static analysis is a strong baseline for maintained starters
-- dependency review gives fast signal before risky packages land
+- dependency review can be useful, but it should be kept non-blocking or removed if it creates more noise than signal
 - non-blocking license reporting is a good bridge before stricter allowlist enforcement
 - SBOM generation is a strong supply-chain visibility layer for deployable templates
 
@@ -432,9 +430,7 @@ soon.md
 .github/ISSUE_TEMPLATE/*
 .github/release-drafter.yml
 .github/labels.json
-.github/dependency-review-config.yml
 .github/workflows/template-ci.yml
-.github/workflows/dependency-review.yml
 .github/workflows/release-drafter.yml
 .github/workflows/release.yml
 .github/workflows/release-smoke.yml
@@ -456,6 +452,8 @@ Add these if relevant:
 scripts/check-contract-drift.mjs
 scripts/check-docker-builds.mjs
 scripts/check-release-smoke.mjs
+.github/dependency-review-config.yml
+.github/workflows/dependency-review.yml
 docs/assets/*
 docs/openapi.yaml
 tests/fixtures/*
@@ -498,7 +496,7 @@ For most future non-domain-specific starters, preserve this rough shape:
 - app, test, and build verification
 - browser E2E when the product story promises real workflows
 - platform-specific verification if relevant
-- dependency review
+- optional dependency review if it is trustworthy for the repo
 - Docker or packaging check if deployable
 
 ### Release Layer
@@ -558,7 +556,6 @@ If you want the version that scales better for open source or long-term reuse, a
 - `LICENSE`
 - workflow lint
 - CodeQL
-- dependency review
 - label sync
 - release drafter
 - release smoke tests
@@ -608,7 +605,7 @@ These patterns are still generic even though the local implementation is CV-shap
 - repos with real user flows should have at least one browser E2E confidence path
 - workflows should be linted
 - secrets should be scanned
-- dependency changes should be reviewed on pull requests
+- dependency changes should be reviewed on pull requests when the signal is reliable enough to justify the maintenance cost
 - dependency licenses should be reportable without manual digging
 - SBOMs should be generated for source trees or release artifacts when supply-chain visibility matters
 - published artifacts should have provenance attestations when the platform supports them

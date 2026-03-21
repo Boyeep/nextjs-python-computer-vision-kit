@@ -123,11 +123,7 @@ The root check runs:
 
 CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
 
-Pull requests also run GitHub dependency review so new vulnerable dependency changes are easier to catch before merge.
-
 A separate GitHub workflow generates license-report artifacts for the root workspace, frontend workspace, and backend Python environment.
-
-The dependency-review config also keeps a conservative allowlist of licenses already present in the current dependency tree, so tightening policy does not start by breaking routine updates.
 
 An SBOM workflow also publishes SPDX artifacts for the repository source plus the frontend and backend runner images.
 

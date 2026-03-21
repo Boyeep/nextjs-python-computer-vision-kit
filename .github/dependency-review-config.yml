@@ -1,7 +1,0 @@
-# Keep the initial policy focused on risky dependency changes first.
-# Avoid a strict license allowlist here because it tends to make normal
-# Dependabot updates noisy across ecosystems and workflow dependencies.
-fail-on-severity: high
-fail-on-scopes:
-  - runtime
-license-check: true

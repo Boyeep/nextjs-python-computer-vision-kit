@@ -95,10 +95,6 @@ npm run report:licenses
 
 That command writes generated reports into `reports/licenses/`.
 
-Dependency review also runs automatically on pull requests to catch newly introduced vulnerable dependency changes.
-
-That dependency review config also includes an allowlist for the licenses already present in the current dependency tree. If you intentionally add a dependency under a new acceptable license, update `.github/dependency-review-config.yml` in the same pull request.
-
 ## Changing the API Contract
 
 If you modify request or response shapes:
