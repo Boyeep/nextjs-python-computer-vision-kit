@@ -133,6 +133,8 @@ If you modify request or response shapes:
 5. Wait for the release workflow to verify the repo, publish GHCR images, and create the GitHub Release.
 6. Confirm the release smoke workflow passes against the published images, or dispatch it manually for a tag if you need to re-check a release.
 
+The release notes will also include links to the image provenance attestations generated during the publish workflow.
+
 The component labels used by Release Drafter are synced from `.github/labels.json`, and most of the common ones are applied automatically from changed paths.
 
 To run the same image smoke check locally, set `BACKEND_IMAGE` and `FRONTEND_IMAGE`, then run `npm run check:release-smoke`.

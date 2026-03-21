@@ -24,6 +24,7 @@ The template-grade layer is the part worth reusing almost anywhere:
 - security scanning
 - license reporting
 - SBOM generation
+- provenance attestations
 - repo governance
 - image/build verification
 - smoke testing after release
@@ -175,6 +176,7 @@ What it covers here:
 - semver bump guidance through labels
 - tag-triggered release workflow
 - GHCR publishing
+- build-provenance attestations for published container images
 - release smoke test against published images
 - synced repository labels
 
@@ -189,6 +191,7 @@ Generic takeaway:
 
 - if the repo is public and meant to last, release automation is worth it
 - release smoke tests are especially valuable because they test the thing users actually consume
+- provenance attestations strengthen trust in published artifacts without requiring manual signing steps
 
 ### 7. Repo Governance and Maintainer UX
 

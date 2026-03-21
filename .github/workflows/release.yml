@@ -6,8 +6,7 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   verify:
@@ -55,6 +54,15 @@ jobs:
     name: Publish GHCR Images
     needs: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    outputs:
+      backend-attestation-url: ${{ steps.attest-backend.outputs.attestation-url }}
+      frontend-attestation-url: ${{ steps.attest-frontend.outputs.attestation-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -97,6 +105,7 @@ jobs:
             type=semver,pattern={{major}}
 
       - name: Build and push backend image
+        id: push-backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
@@ -108,7 +117,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Generate backend provenance attestation
+        id: attest-backend
+        uses: actions/attest@v4
+        with:
+          subject-name: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-backend
+          subject-digest: ${{ steps.push-backend.outputs.digest }}
+          push-to-registry: true
+
       - name: Build and push frontend image
+        id: push-frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -120,10 +138,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Generate frontend provenance attestation
+        id: attest-frontend
+        uses: actions/attest@v4
+        with:
+          subject-name: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-frontend
+          subject-digest: ${{ steps.push-frontend.outputs.digest }}
+          push-to-registry: true
+
   github-release:
     name: Publish GitHub Release
     needs: publish-images
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Set lowercase owner
         id: vars
@@ -140,3 +168,8 @@ jobs:
 
             - `ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-backend:${{ github.ref_name }}`
             - `ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-frontend:${{ github.ref_name }}`
+
+            ## Provenance Attestations
+
+            - Backend image: ${{ needs.publish-images.outputs.backend-attestation-url }}
+            - Frontend image: ${{ needs.publish-images.outputs.frontend-attestation-url }}
