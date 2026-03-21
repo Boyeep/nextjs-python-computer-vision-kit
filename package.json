@@ -6,6 +6,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:down": "docker compose down",
     "api:types": "openapi-typescript ./docs/openapi.yaml -o ./frontend/src/generated/openapi.ts",
+    "check:contract": "node scripts/check-contract-drift.mjs",
     "check": "node scripts/check.mjs"
   },
   "keywords": [

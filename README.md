@@ -8,6 +8,7 @@ It gives you a polished upload-to-inference UI, a typed OpenAPI contract, CPU-fr
   <a href="#quick-start">Quick start</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#what-you-get">What you get</a> ·
+  <a href="./CONTRIBUTING.md">Contributing</a> ·
   <a href="./soon.md">Roadmap</a>
 </p>
 
@@ -91,6 +92,7 @@ If you create `backend/.venv`, the root scripts will prefer that interpreter aut
 npm run dev
 npm run dev:down
 npm run api:types
+npm run check:contract
 npm run check
 ```
 
@@ -109,6 +111,7 @@ The root check runs:
 - `docs/openapi.yaml` is the source of truth for the HTTP contract.
 - `frontend/src/generated/openapi.ts` is generated from that spec.
 - Run `npm run api:types` whenever backend payloads change.
+- Run `npm run check:contract` to confirm the generated types are committed and in sync.
 
 ## Recommended Growth Path
 

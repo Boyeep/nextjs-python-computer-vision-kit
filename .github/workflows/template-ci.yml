@@ -6,9 +6,90 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  verify:
+  contract-drift:
+    name: Contract Drift
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install root tooling
+        run: npm ci
+
+      - name: Verify generated API types
+        run: npm run check:contract
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint frontend
+        run: npm run lint:strict
+        working-directory: frontend
+
+      - name: Typecheck frontend
+        run: npm run typecheck
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ./backend[dev]
+
+      - name: Run backend tests
+        run: python -m pytest
+        working-directory: backend
+
+      - name: Compile backend package
+        run: python -m compileall app
+        working-directory: backend
+
+  root-check-windows:
+    name: Root Check (Windows)
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +107,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install root tooling
         run: npm ci
@@ -39,8 +122,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ./backend[dev]
 
-      - name: Generate API types
-        run: npm run api:types
+      - name: Verify generated API types
+        run: npm run check:contract
 
-      - name: Run template checks
+      - name: Run root verification
         run: npm run check
