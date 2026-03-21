@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "nextjs-python-computer-vision-kit-backend"
 version = "0.1.0"
 description = "FastAPI backend for the computer vision starter kit."
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -20,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "httpx>=0.28,<1.0",
+  "pip-licenses>=5.5,<6.0",
   "pytest>=8.3,<9.0",
   "ruff>=0.11,<1.0",
 ]
