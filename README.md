@@ -1,8 +1,47 @@
 # nextjs-python-computer-vision-kit
 
-A full-stack starter monorepo for detection-first computer vision products built with Next.js and FastAPI.
+A product-minded monorepo starter for detection-first computer vision apps built with Next.js and FastAPI.
 
-It combines a polished frontend, a Python API designed for image-processing workloads, shared root scripts, a documented OpenAPI contract, and a sample detection pipeline that runs on CPU with OpenCV so teams can start shipping product workflows before committing to a heavier model stack.
+It gives you a polished upload-to-inference UI, a typed OpenAPI contract, CPU-friendly starter pipelines, and a clean path into webcam capture, segmentation, and heavier model backends later.
+
+<p>
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#what-you-get">What you get</a> ·
+  <a href="./soon.md">Roadmap</a>
+</p>
+
+## Screenshots
+
+![Vision console screenshot](docs/assets/vision-console.png)
+
+![Webcam extension screenshot](docs/assets/webcam-extension.png)
+
+## Why This Repo Exists
+
+Most computer-vision starters fall into one of two buckets:
+
+- model notebooks with no product layer
+- web templates with no real inference contract
+
+This kit sits in the middle. It starts with a real product flow:
+
+- upload an image
+- run a detection-oriented pipeline
+- inspect typed boxes, metrics, and image metadata
+- keep the same contract when you add segmentation or webcam capture later
+
+## What You Get
+
+- detection-first starter UX with annotated preview overlays
+- inference-first architecture with a separate Next.js frontend and FastAPI backend
+- shared OpenAPI contract in `docs/openapi.yaml`
+- generated frontend API types from `openapi-typescript`
+- optional webcam extension that reuses the same API surface
+- first live segmentation extension with polygons, masks, and derived boxes
+- CPU-first OpenCV sample pipelines that are easy to replace later
+- root dev and verification scripts for a monorepo-style workflow
+- GitHub Actions template CI
 
 ## Stack
 
@@ -15,32 +54,22 @@ It combines a polished frontend, a Python API designed for image-processing work
 - OpenCV
 - Docker Compose
 
-## Monorepo Structure
+## Included Pipelines
 
-- `frontend/`: Next.js app with a vision-console UI, API client helpers, and generated OpenAPI types
-- `backend/`: FastAPI service with health, pipeline catalog, and image-analysis routes
-- `docs/`: shared API contract
-- `scripts/`: root development and verification scripts
-- `.github/`: CI workflow for the template
+- `starter-detection`: default object-style detection flow for the main UI
+- `foreground-segmentation`: first extension pipeline with polygons plus derived boxes
+- `document-layout`: document-style region extraction for capture and scanning products
+- `dominant-color`: metrics-only example for QA and analytics workflows
 
-## Recommended Shape
+These pipelines are intentionally lightweight. They prove the repo shape and developer workflow without forcing you into toy logic forever. Swap them for YOLO, ONNX Runtime, PyTorch, TensorRT, or a hosted inference service when you are ready.
 
-- architecture: inference-first
-- default demo: detection-first
-- optional frontend extension: webcam capture
-- later backend extension: segmentation
-- later workspace/package: training pipeline
+## Repo Shape
 
-This keeps the template easy to understand while still leaving a clean path into more advanced CV workflows.
-
-## Why This Template Exists
-
-Most computer-vision starters are either model notebooks with no product layer or web templates with no real inference shape. This template sits in the middle:
-
-- product-minded frontend by default
-- backend structure ready for image upload, preprocessing, and model-serving extensions
-- typed API contract between the web app and the inference service
-- one-command local development from the repo root
+- `frontend/`: Next.js app shell, upload flow, webcam flow, and generated API types
+- `backend/`: FastAPI service, pipeline registry, validation, and starter image logic
+- `docs/`: OpenAPI contract and screenshot assets
+- `scripts/`: root development and verification commands
+- `.github/`: template CI workflow
 
 ## Quick Start
 
@@ -51,8 +80,10 @@ Most computer-vision starters are either model notebooks with no product layer o
 5. Run `npm run api:types`.
 6. Run `npm run dev`.
 
-Frontend: `http://localhost:3000`
+Frontend: `http://localhost:3000`  
 Backend: `http://127.0.0.1:8000`
+
+If you create `backend/.venv`, the root scripts will prefer that interpreter automatically.
 
 ## Commands
 
@@ -63,45 +94,28 @@ npm run api:types
 npm run check
 ```
 
-## API Contract
+## Verification
 
-- `docs/openapi.yaml` is the source of truth for the shared HTTP contract.
-- `frontend/src/generated/openapi.ts` is generated from that spec with `openapi-typescript`.
+The root check runs:
+
+- frontend lint
+- frontend typecheck
+- frontend production build
+- backend `pytest`
+- backend `compileall`
+
+## Contract Notes
+
+- `docs/openapi.yaml` is the source of truth for the HTTP contract.
+- `frontend/src/generated/openapi.ts` is generated from that spec.
 - Run `npm run api:types` whenever backend payloads change.
 
-## Sample Pipelines Included
+## Recommended Growth Path
 
-- `starter-detection`: the default object-style detection sample used by the main frontend flow
-- `foreground-segmentation`: the first live extension pipeline, returning region polygons and derived boxes
-- `document-layout`: document-oriented box extraction for scanning and capture products
-- `dominant-color`: metrics-only extension pipeline for QA and analytics
+1. Keep the main story detection-first.
+2. Add webcam polish once upload mode feels strong.
+3. Add segmentation depth without changing the response boundary.
+4. Introduce a real model adapter layer.
+5. Split training and experimentation into a separate workspace later.
 
-These are intentionally lightweight starter pipelines. They are there to prove the architecture and developer workflow, not to lock you into toy logic. Swap them for YOLO, ONNX Runtime, PyTorch, TensorRT, or a custom service when you are ready.
-
-## What You Get
-
-- reusable Next.js + Python computer-vision monorepo layout
-- upload-and-detect frontend starter UI
-- optional webcam capture mode that reuses the same inference contract
-- first segmentation extension pipeline using the same response boundary
-- FastAPI inference endpoint with typed response models
-- OpenCV-based sample processing that runs without a GPU
-- root scripts for local dev and checks
-- GitHub Actions workflow for frontend and backend verification
-- Docker Compose dev option
-
-## Notes
-
-- The backend in this starter is CPU-first on purpose so it is easier to clone, run, and extend.
-- The main story is intentionally detection-first so the template stays easy to explain and demo.
-- The current environment used to build this template did not have Python installed, so the frontend was verified locally but backend execution was prepared rather than run here.
-- If you move to heavier vision workloads, add a worker or model-service layer and keep the current API as the contract boundary.
-
-## Next Expansions
-
-- async job queue for long-running inference
-- persistent artifact storage
-- model registry and experiment tracking
-- richer segmentation overlays and mask visualizations
-- video ingestion pipelines
-- training or experiment workspace in a separate `ml/` or `training/` package
+The short public roadmap lives in [soon.md](./soon.md).

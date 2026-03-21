@@ -1,44 +1,48 @@
 # Soon
 
-The next upgrades for this computer-vision kit, ordered roughly from nearest-term wins to larger platform work.
+Short public roadmap for the next upgrades to this computer-vision kit.
 
-## Product and UX
+## Now
 
-1. Add a solo-class focus mode so one click can show only one label on the overlay.
-2. Add hover linking between legend items and overlay shapes.
-3. Bring the full annotated overlay experience to webcam mode, including labels, filters, and PNG export.
-4. Add a side-by-side original vs annotated preview mode for easier review.
-5. Add video upload support that reuses the same inference contract frame by frame.
+These are the highest-leverage next steps for the public template.
 
-## Vision and Backend
+1. Bring the full overlay experience to webcam mode, including labels, filters, and export.
+2. Add backend CI that runs the Python test suite in a real Python-enabled environment.
+3. Add fixture images and golden outputs so API and UI behavior stay easy to verify.
+
+## Next
+
+These upgrades make the starter more useful for real teams without changing the repo's shape.
 
 1. Add a model adapter layer for YOLO, ONNX Runtime, and hosted inference APIs.
-2. Add per-pipeline threshold controls for confidence, box filtering, and segmentation cleanup.
-3. Add richer segmentation output options such as mask rasters and polygon smoothing.
-4. Add batch inference support for multiple images in one request.
-5. Add async jobs for long-running inference workloads.
+2. Add per-pipeline controls for confidence thresholds, box filtering, and segmentation cleanup.
+3. Add solo-class focus and hover linking in the preview overlay.
+4. Add a side-by-side original vs annotated review mode.
 
-## Training and Evaluation
+## Later
 
-1. Create a separate `training/` workspace instead of mixing training into the app runtime.
-2. Add dataset config templates for detection and segmentation projects.
-3. Add evaluation scripts for sample predictions and regression checking.
+These are larger product and platform expansions once the starter path feels mature.
+
+1. Add batch inference for multiple images in one request.
+2. Add async jobs for long-running inference workloads.
+3. Add video ingestion that reuses the same contract frame by frame.
+4. Add artifact storage and richer export flows.
+
+## Separate Workspace
+
+Training should stay adjacent to the app, not mixed into the runtime path.
+
+1. Create a dedicated `training/` workspace.
+2. Add dataset config templates for detection and segmentation.
+3. Add evaluation and regression scripts for sample predictions.
 4. Add experiment tracking hooks for metrics, artifacts, and model versions.
 
-## Developer Experience and Ops
+## Recommended Sequence
 
-1. Run backend `pytest` in a real Python-enabled environment and wire it into CI.
-2. Add a backend Docker path so the FastAPI service is easy to boot without local Python setup issues.
-3. Add fixture images and golden outputs for repeatable API and UI checks.
-4. Add environment validation and clearer first-run setup scripts.
-5. Add template docs for how to swap the sample OpenCV pipelines with production models.
-
-## Recommended Next Move
-
-If we keep following the current path, the best next upgrade is:
+If you are extending the repo from here, the cleanest order is:
 
 1. webcam overlay parity
-2. real model adapter interface
-3. backend test execution in CI
+2. backend CI + fixture-based verification
+3. model adapter interface
 
-That keeps the template feeling product-ready while making it easier to grow beyond the starter OpenCV pipelines.
+That keeps the repo product-shaped while making it much easier to grow beyond the starter OpenCV pipelines.
