@@ -41,6 +41,7 @@ If a template only has code and no repo workflow, it is usually still a prototyp
 - workflow lint
 - secret scan
 - dependency review on pull requests
+- SBOM generation for source or publishable artifacts when relevant
 - app verification
 - cross-platform check if relevant
 - packaging or Docker build check if relevant
@@ -82,6 +83,7 @@ soon.md
 .github/workflows/release-drafter.yml
 .github/workflows/release.yml
 .github/workflows/release-smoke.yml
+.github/workflows/sbom.yml
 .github/workflows/sync-labels.yml
 .github/workflows/codeql.yml
 scripts/dev.mjs
@@ -156,6 +158,7 @@ If you want the version that scales better for open source or long-term reuse, a
 - secrets should be scanned
 - dependency changes should be reviewed on pull requests
 - dependency licenses should be reportable without manual digging
+- SBOMs should be generated for source trees or release artifacts when supply-chain visibility matters
 - release steps should be automated
 - docs should explain maintainer flow, not just user setup
 

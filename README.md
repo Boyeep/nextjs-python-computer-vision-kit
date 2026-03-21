@@ -129,6 +129,8 @@ A separate GitHub workflow generates license-report artifacts for the root works
 
 The dependency-review config also keeps a conservative allowlist of licenses already present in the current dependency tree, so tightening policy does not start by breaking routine updates.
 
+An SBOM workflow also publishes SPDX artifacts for the repository source plus the frontend and backend runner images.
+
 ## Releases
 
 - Release Drafter keeps a draft release updated from merged pull requests on `main` and can auto-label incoming pull requests by path.

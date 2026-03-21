@@ -23,6 +23,7 @@ The template-grade layer is the part worth reusing almost anywhere:
 - release automation
 - security scanning
 - license reporting
+- SBOM generation
 - repo governance
 - image/build verification
 - smoke testing after release
@@ -219,6 +220,7 @@ Files:
 - `.github/workflows/template-ci.yml`
 - `.github/workflows/codeql.yml`
 - `.github/workflows/license-report.yml`
+- `.github/workflows/sbom.yml`
 - `SECURITY.md`
 
 What it covers here:
@@ -226,6 +228,7 @@ What it covers here:
 - tracked git content scanned with `gitleaks`
 - CodeQL scanning for JavaScript/TypeScript, Python, and workflow files
 - generated license inventories for npm and Python dependencies
+- SBOM artifacts for source and runner images
 - private disclosure guidance
 
 Why it matters:
@@ -239,6 +242,7 @@ Generic takeaway:
 - secret scanning is a near-default for public repos
 - CodeQL or equivalent static analysis is a strong baseline for maintained starters
 - non-blocking license reporting is a good bridge before stricter allowlist enforcement
+- SBOM generation is a strong supply-chain visibility layer for deployable templates
 
 ### 9. Workflow Linting
 

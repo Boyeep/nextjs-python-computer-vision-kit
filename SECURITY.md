@@ -33,6 +33,7 @@ The repository also uses automated scanning to help catch common security issues
 - CodeQL code scanning on GitHub for JavaScript/TypeScript, Python, and workflow files
 - GitHub dependency review on pull requests for newly introduced vulnerable dependency changes
 - GitHub license-report artifacts for npm and Python dependency inventories
+- GitHub SBOM artifacts for the repository source and runner images
 
 Dependency review is also configured with an allowlist that matches the current dependency tree, so changes that introduce new license types are surfaced deliberately instead of silently drifting in.
 
