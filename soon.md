@@ -37,6 +37,24 @@ Training should stay adjacent to the app, not mixed into the runtime path.
 3. Add evaluation and regression scripts for sample predictions.
 4. Add experiment tracking hooks for metrics, artifacts, and model versions.
 
+## Deployment Status
+
+The template itself is close to deploy-ready today:
+
+1. production Dockerfiles already exist for the frontend and backend
+2. release tags already publish images and a GitHub Release
+3. release smoke checks already validate the published images
+
+The sign-language adaptation path is not deploy-ready yet.
+
+Before treating that version as deployable, the next gaps to close are:
+
+1. add the actual sign-language inference pipeline in the backend
+2. define model artifact packaging and versioning
+3. set production CORS and environment values for the deployed frontend domain
+4. add a production-oriented deployment target or guide for a real host
+5. add regression checks for the sign-language model outputs
+
 ## Recommended Sequence
 
 If you are extending the repo from here, the cleanest order is:
