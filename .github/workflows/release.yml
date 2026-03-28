@@ -86,7 +86,7 @@ jobs:
 
       - name: Docker metadata for backend
         id: meta-backend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-backend
           tags: |
@@ -97,7 +97,7 @@ jobs:
 
       - name: Docker metadata for frontend
         id: meta-frontend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ steps.vars.outputs.owner }}/nextjs-python-computer-vision-kit-frontend
           tags: |
