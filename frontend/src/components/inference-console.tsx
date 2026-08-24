@@ -76,8 +76,11 @@ export function InferenceConsole() {
           setResult(cameraResult);
           setError(null);
         }
-      } catch {
-        if (!cancelled) setError("Live detection paused. Check the API connection.");
+      } catch (cause) {
+        if (!cancelled) {
+          setError(cause instanceof Error ? cause.message : "Live detection stopped.");
+          stopCamera();
+        }
       } finally {
         liveRequestRef.current = false;
         if (!cancelled) timer = setTimeout(detectFrame, detectionInterval);
@@ -96,6 +99,15 @@ export function InferenceConsole() {
   }
 
   async function startCamera() {
+    if (connectionMode === "fallback") {
+      setConnectionMode("checking");
+      const payload = await fetchPipelineCatalog();
+      setConnectionMode(payload.source);
+      if (payload.source === "fallback") {
+        setError("Vision API is offline. Run npm run dev from the repository root, then retry.");
+        return;
+      }
+    }
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFacing }, audio: false });
@@ -190,7 +202,7 @@ export function InferenceConsole() {
         <div className="mt-auto space-y-3 pt-5 max-lg:mt-0 max-lg:pt-0">
           {error ? <p className="rounded-2xl bg-[#f5d8ce] px-3 py-2 text-xs text-[#762f20]" role="alert">{error}</p> : null}
           <button className="h-12 w-full rounded-full bg-[var(--accent)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45" disabled={inputMode === "camera" || isPending || !selectedPipeline} type="submit">{inputMode === "camera" ? (isCameraActive ? "Detecting live…" : "Camera is off") : isPending ? "Analyzing…" : "Run analysis"}</button>
-          <p className="text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)]">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "Demo catalog" : "Connecting"}</p>
+          <p className="text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)]">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "API offline" : "Connecting"}</p>
         </div>
       </form>
 

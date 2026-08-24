@@ -13,7 +13,6 @@ export default function VisionPage() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-2 rounded-full bg-white/55 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)] md:flex"><span className="h-2 w-2 rounded-full bg-[#58a36d]" /> API ready</span>
           <Link className="rounded-full bg-[var(--foreground)] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[var(--accent-strong)]" href="/">Exit</Link>
         </div>
       </header>
