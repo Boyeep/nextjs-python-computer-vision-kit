@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { ChevronDown, ScanLine, Settings, Upload, Video, X } from "lucide-react";
 import { AnalysisPreview } from "@/components/analysis-preview";
 import { analyzeImage, demoPipelines, fetchPipelineCatalog, getPreferredPipelineId, type AnalyzeResponse, type PipelineSummary } from "@/lib/api";
 
@@ -169,7 +170,7 @@ export function InferenceConsole() {
 
   return (
     <section className="relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
-      <form className="flex min-h-0 flex-col bg-[#dbe5d8] p-3 sm:p-4 lg:p-5" onSubmit={handleSubmit}>
+      <form className="reveal flex min-h-0 flex-col bg-[#dbe5d8] p-3 [--reveal-delay:40ms] sm:p-4 lg:p-5" onSubmit={handleSubmit}>
         <div className="flex items-center justify-between lg:block">
           <p className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] lg:block">Workspace</p>
           <h1 className="text-lg font-semibold tracking-[-0.05em] lg:mt-2 lg:text-2xl">Image lab</h1>
@@ -182,7 +183,7 @@ export function InferenceConsole() {
               <select className="h-11 w-full cursor-pointer appearance-none rounded-2xl bg-white/70 py-0 pl-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]" value={selectedPipeline} onChange={(event) => setSelectedPipeline(event.target.value)}>
                 {pipelines.map((pipeline) => <option key={pipeline.id} value={pipeline.id}>{pipeline.name}</option>)}
               </select>
-              <svg aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground)]" fill="none" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
+              <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground)]" strokeWidth={2} />
             </span>
           </label>
           <div>
@@ -193,10 +194,10 @@ export function InferenceConsole() {
             </div>
           </div>
           {inputMode === "upload" ? <label className="group col-span-full flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/55 px-3 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] lg:min-h-20 lg:flex-col lg:gap-0 lg:rounded-[1.5rem] lg:px-4">
-              <span className="text-lg text-[var(--accent)] lg:text-xl">＋</span><span className="text-xs font-semibold lg:text-sm">Choose image</span><span className="hidden mt-1 max-w-full truncate text-[11px] text-[var(--muted)] lg:block">{file?.name ?? "PNG, JPG or WEBP"}</span>
+              <Upload aria-hidden="true" className="h-4 w-4 text-[var(--accent)]" /><span className="text-xs font-semibold lg:text-sm">Choose image</span><span className="hidden mt-1 max-w-full truncate text-[11px] text-[var(--muted)] lg:block">{file?.name ?? "PNG, JPG or WEBP"}</span>
               <input accept="image/png,image/jpeg,image/webp" className="sr-only" type="file" onChange={handleFileChange} />
             </label> : <button className={`col-span-full flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 text-xs font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
-              <svg aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"><path d="M15 10.5 19.5 8v8L15 13.5m-9.5-7h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+              <Video aria-hidden="true" className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               {isCameraActive ? "Stop camera" : "Start camera"}
             </button>}
         </div>
@@ -207,7 +208,7 @@ export function InferenceConsole() {
         </div>
       </form>
 
-      <div className="flex min-h-0 flex-col p-4 md:p-5">
+      <div className="reveal flex min-h-0 flex-col p-4 [--reveal-delay:120ms] md:p-5">
         <div className="flex shrink-0 items-center justify-between pb-3">
           <div><p className="text-sm font-semibold">Preview</p><p className="text-[11px] text-[var(--muted)]">Detection overlay</p></div>
           {result ? <span className="rounded-full bg-[var(--lime)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em]">Complete</span> : null}
@@ -224,7 +225,7 @@ export function InferenceConsole() {
         </div>
       </div>
 
-      <aside className="hidden min-h-0 flex-col bg-[#242f2c] p-5 text-white lg:flex">
+      <aside className="reveal hidden min-h-0 flex-col bg-[#242f2c] p-5 text-white [--reveal-delay:200ms] lg:flex">
         <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Results</p><p className="text-[11px] text-white/45">Latest run</p></div><span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /></div>
         {result ? <>
           <div className="mt-7 grid grid-cols-2 gap-3">
@@ -235,14 +236,14 @@ export function InferenceConsole() {
             {[...detections, ...segmentations].slice(0, 5).map((item, index) => <div className="flex items-center justify-between rounded-2xl bg-white/6 px-3 py-3" key={`${item.label}-${index}`}><span className="truncate text-sm capitalize">{item.label.replaceAll("-", " ")}</span><span className="font-mono text-xs text-white/55">{Math.round(item.confidence * 100)}%</span></div>)}
           </div>
           <div className="mt-auto rounded-2xl bg-[var(--violet)] p-3 text-[var(--foreground)]"><p className="truncate text-xs font-semibold">{result.pipeline.name}</p><p className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] opacity-60">{result.image.width} × {result.image.height}</p></div>
-        </> : <div className="flex flex-1 flex-col justify-center"><span className="text-5xl font-light text-white/18">↗</span><p className="mt-5 text-xl font-medium tracking-[-0.04em]">Results land here.</p><p className="mt-2 text-sm leading-6 text-white/45">Add an image and run the pipeline.</p></div>}
+        </> : <div className="flex flex-1 flex-col justify-center"><ScanLine aria-hidden="true" className="h-10 w-10 text-white/20" strokeWidth={1.4} /><p className="mt-5 text-xl font-medium tracking-[-0.04em]">Results land here.</p><p className="mt-2 text-sm leading-6 text-white/45">Add an image and run the pipeline.</p></div>}
       </aside>
 
-      <button aria-expanded={isSettingsOpen} aria-label={isSettingsOpen ? "Close vision settings" : "Open vision settings"} className="absolute bottom-5 right-5 z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[var(--foreground)] shadow-[0_12px_36px_rgba(18,31,28,0.24)] transition hover:rotate-12 hover:bg-[var(--lime)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" onClick={() => setIsSettingsOpen((open) => !open)} type="button">
-        <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" strokeWidth="1.8" /><path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 0 1-2.8-2.8L3 15a2 2 0 0 0-1.4-3.4h-.1a2 2 0 0 1 0-4h.1A2 2 0 0 0 3 4.2l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a2 2 0 0 0 3.4-1.4V0m5.6 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a2 2 0 0 0 1.4 3.4h.1a2 2 0 0 1 0 4h-.1A2 2 0 0 0 19.4 15Z" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" /></svg>
+      <button aria-expanded={isSettingsOpen} aria-label={isSettingsOpen ? "Close vision settings" : "Open vision settings"} className="reveal absolute bottom-5 right-5 z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[var(--foreground)] shadow-[0_12px_36px_rgba(18,31,28,0.24)] transition [--reveal-delay:300ms] hover:rotate-12 hover:bg-[var(--lime)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" onClick={() => setIsSettingsOpen((open) => !open)} type="button">
+        <Settings aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
       </button>
-      {isSettingsOpen ? <div className="absolute bottom-20 right-5 z-20 w-[min(310px,calc(100%-2.5rem))] rounded-[1.75rem] bg-white p-5 shadow-[0_24px_70px_rgba(18,31,28,0.28)]">
-        <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Vision settings</p><p className="text-[11px] text-[var(--muted)]">Tune the live workspace</p></div><button aria-label="Close settings" className="h-10 w-10 cursor-pointer rounded-full bg-[#eef1eb] text-lg" onClick={() => setIsSettingsOpen(false)} type="button">×</button></div>
+      {isSettingsOpen ? <div className="reveal absolute bottom-20 right-5 z-20 w-[min(310px,calc(100%-2.5rem))] rounded-[1.75rem] bg-white p-5 shadow-[0_24px_70px_rgba(18,31,28,0.28)]">
+        <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Vision settings</p><p className="text-[11px] text-[var(--muted)]">Tune the live workspace</p></div><button aria-label="Close settings" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#eef1eb]" onClick={() => setIsSettingsOpen(false)} type="button"><X aria-hidden="true" className="h-4 w-4" /></button></div>
         <div className="mt-5 space-y-4 text-xs">
           <label className="flex items-center justify-between gap-4"><span>Mirror camera</span><input checked={isMirrored} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setIsMirrored(event.target.checked)} type="checkbox" /></label>
           <label className="flex items-center justify-between gap-4"><span>Show boxes</span><input checked={showBoxes} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setShowBoxes(event.target.checked)} type="checkbox" /></label>
