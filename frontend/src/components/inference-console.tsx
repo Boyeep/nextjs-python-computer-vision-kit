@@ -139,13 +139,13 @@ export function InferenceConsole() {
     pipelines.find((item) => item.id === selectedPipeline) ?? pipelines[0];
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="fade-up rounded-[32px] border border-black/10 bg-white/78 p-6 shadow-[0_32px_90px_rgba(10,20,25,0.12)] backdrop-blur-xl">
+    <section className="grid border-y border-[var(--line)] lg:grid-cols-[0.92fr_1.08fr]">
+      <div className="fade-up py-8 lg:border-r lg:border-[var(--line)] lg:pr-10">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--foreground)]">
+          <span className="border-l-2 border-[var(--accent)] pl-3 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--foreground)]">
             Vision Console
           </span>
-          <span className="rounded-full border border-black/10 px-3 py-1 font-mono text-xs text-black/65">
+          <span className="font-mono text-xs text-[var(--muted)]">
             {connectionMode === "live"
               ? "live backend"
               : connectionMode === "fallback"
@@ -169,7 +169,7 @@ export function InferenceConsole() {
           <label className="block space-y-2">
             <span className="text-sm font-medium text-black/75">Pipeline</span>
             <select
-              className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-black/30"
+              className="min-h-12 w-full border-x-0 border-t-0 border-b border-[var(--line)] bg-transparent px-0 py-3 text-sm outline-none transition-colors focus:border-[var(--accent)]"
               value={selectedPipeline}
               onChange={(event) => setSelectedPipeline(event.target.value)}
             >
@@ -181,12 +181,12 @@ export function InferenceConsole() {
             </select>
           </label>
 
-          <div className="rounded-[24px] border border-dashed border-black/15 bg-[#faf5ed] p-4">
+          <div className="border-y border-[var(--line)] py-5">
             <label className="flex cursor-pointer flex-col gap-2">
               <span className="text-sm font-medium text-black/75">Upload image</span>
               <input
                 accept="image/png,image/jpeg,image/webp"
-                className="text-sm text-black/70 file:mr-4 file:rounded-full file:border-0 file:bg-[var(--foreground)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+                className="min-h-12 text-sm text-[var(--muted)] file:mr-4 file:min-h-11 file:cursor-pointer file:border-0 file:bg-[var(--foreground)] file:px-5 file:py-2 file:text-sm file:font-medium file:text-white file:transition-colors file:hover:bg-[var(--accent-strong)]"
                 type="file"
                 onChange={handleFileChange}
               />
@@ -200,7 +200,7 @@ export function InferenceConsole() {
             />
           </div>
 
-          <div className="rounded-[24px] border border-black/10 bg-[#13262e] p-4 text-white">
+          <div className="bg-[var(--foreground)] px-5 py-4 text-white">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/55">
@@ -209,7 +209,7 @@ export function InferenceConsole() {
                 <p className="mt-2 text-sm text-white/85">{getApiBaseUrl()}/analyze</p>
               </div>
               <button
-                className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[#1d1007] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60"
+                className="min-h-12 bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#d95837] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isPending || !selectedPipeline}
                 type="submit"
               >
@@ -219,14 +219,14 @@ export function InferenceConsole() {
           </div>
 
           {currentPipeline ? (
-            <div className="rounded-[24px] border border-black/10 bg-white px-4 py-4 text-sm text-black/70">
+            <div className="border-l border-[var(--line)] pl-4 text-sm text-[var(--muted)]">
               <p className="font-semibold text-[var(--foreground)]">{currentPipeline.name}</p>
               <p className="mt-2 leading-7">{currentPipeline.summary}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {currentPipeline.sample_outputs.map((output) => (
                   <span
                     key={output}
-                    className="rounded-full bg-[var(--accent-soft)] px-3 py-1 font-mono text-xs text-black/70"
+                    className="border-b border-[var(--accent)] py-1 font-mono text-xs text-[var(--foreground)]"
                   >
                     {output}
                   </span>
@@ -236,7 +236,7 @@ export function InferenceConsole() {
                 {currentPipeline.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-black/5 px-3 py-1 font-mono text-xs text-black/60"
+                    className="py-1 font-mono text-xs text-[var(--muted)]"
                   >
                     {tag}
                   </span>
@@ -246,7 +246,7 @@ export function InferenceConsole() {
           ) : null}
 
           {error ? (
-            <div className="rounded-[20px] border border-[#d46a4f]/30 bg-[#fff1ec] px-4 py-3 text-sm text-[#8b3b28]">
+            <div className="border-l-2 border-[var(--accent)] bg-[#f5ddd4] px-4 py-3 text-sm text-[#762f20]" role="alert">
               {error}
             </div>
           ) : null}

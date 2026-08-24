@@ -508,7 +508,7 @@ export function AnalysisPreview({
   }
 
   return (
-    <div className="mt-4 overflow-hidden rounded-[20px] border border-black/10 bg-white">
+    <div className="mt-4 overflow-hidden border border-[var(--line)] bg-white">
       <div
         className="relative bg-[linear-gradient(135deg,#fbf4ea_0%,#f4ede2_100%)]"
         style={{ aspectRatio: `${frame.width} / ${frame.height}` }}

@@ -1,166 +1,82 @@
 import { InferenceConsole } from "@/components/inference-console";
 
-const pillars = [
-  {
-    title: "Detection-First Demo",
-    description:
-      "Start with upload, detection boxes, and a review panel instead of trying to explain every CV workflow at once.",
-  },
-  {
-    title: "Inference-First Contract",
-    description:
-      "Keep frontend and backend aligned through one inference contract that survives model changes later.",
-  },
-  {
-    title: "Replaceable Vision Layer",
-    description:
-      "Keep model-specific work behind the API so the product interface stays stable as inference evolves.",
-  },
-];
-
-const repoAreas = [
-  {
-    path: "frontend/",
-    detail: "Next.js app shell, upload workflow, and generated API types.",
-  },
-  {
-    path: "backend/",
-    detail: "FastAPI service, pipeline registry, image validation, and OpenCV starter logic.",
-  },
-  {
-    path: "docs/",
-    detail: "OpenAPI source of truth for contracts between the interface and the inference layer.",
-  },
-  {
-    path: "scripts/",
-    detail: "Root commands for local dev and verification, mirroring the monorepo kit ergonomics.",
-  },
-];
-
 export default function Home() {
   return (
-    <main className="relative flex-1 overflow-hidden">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="mesh-orb absolute left-[6%] top-16 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,203,176,0.95),rgba(255,122,69,0.12))]" />
-        <div className="mesh-orb absolute right-[10%] top-40 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(84,144,166,0.28),rgba(84,144,166,0.02))]" />
-      </div>
-
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10 lg:py-10">
-        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="fade-up rounded-[36px] border border-black/10 bg-white/74 p-7 shadow-[0_32px_90px_rgba(10,20,25,0.12)] backdrop-blur-xl lg:p-10">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--foreground)]">
-                Monorepo Starter
-              </span>
-              <span className="rounded-full border border-black/10 px-3 py-1 font-mono text-xs text-black/60">
-                Next.js + FastAPI + OpenCV
-              </span>
-            </div>
-
-            <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-[var(--foreground)] sm:text-6xl">
-              A detection-first computer vision kit with room to grow.
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-base leading-8 text-black/70 sm:text-lg">
-              The starter keeps one clear happy path: upload an image, run detection,
-              inspect boxes and metrics, and keep the same contract when you move to a
-              heavier model backend.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                className="rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px]"
-                href="#console"
-              >
-                Explore Vision Console
-              </a>
-              <span className="rounded-full border border-black/10 px-5 py-3 font-mono text-sm text-black/60">
-                Root commands: `dev`, `check`, `api:types`
-              </span>
-            </div>
+    <main className="min-h-dvh">
+      <header className="border-b border-[var(--line)]">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 md:px-10">
+          <div className="flex items-baseline gap-3">
+            <span className="font-semibold tracking-[-0.04em]">Vision/01</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
+              Next.js · FastAPI · OpenCV
+            </span>
           </div>
+          <a
+            className="text-sm text-[var(--muted)] transition-colors duration-200 hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
+            href="#console"
+          >
+            Open console ↓
+          </a>
+        </div>
+      </header>
 
-          <div className="fade-up rounded-[36px] border border-black/10 bg-[#13262e] p-7 text-white shadow-[0_32px_90px_rgba(10,20,25,0.16)] [animation-delay:120ms] lg:p-10">
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
-              Starter Qualities
-            </p>
-            <div className="mt-6 space-y-5">
-              <div className="rounded-[22px] border border-white/10 bg-white/6 p-5">
-                <p className="text-sm text-white/60">Architecture</p>
-                <p className="mt-2 text-xl font-semibold tracking-tight">
-                  Web app and inference API stay separate, but develop together.
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/6 p-5">
-                <p className="text-sm text-white/60">Vision posture</p>
-                <p className="mt-2 text-xl font-semibold tracking-tight">
-                  Detection is the default demo, with CPU-first sample logic so the repo stays cloneable and teachable.
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/6 p-5">
-                <p className="text-sm text-white/60">Upgrade path</p>
-                <p className="mt-2 text-xl font-semibold tracking-tight">
-                  Replace the sample pipelines without changing the contract boundary.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          {pillars.map((pillar, index) => (
-            <article
-              key={pillar.title}
-              className="fade-up rounded-[28px] border border-black/10 bg-white/72 p-5 shadow-[0_24px_70px_rgba(10,20,25,0.08)] backdrop-blur-xl"
-              style={{ animationDelay: `${index * 90}ms` }}
-            >
-              <p className="font-mono text-xs uppercase tracking-[0.25em] text-black/50">
-                0{index + 1}
-              </p>
-              <h2 className="mt-3 text-xl font-semibold tracking-tight text-[var(--foreground)]">
-                {pillar.title}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-black/68">
-                {pillar.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <div id="console">
-          <InferenceConsole />
+      <section className="mx-auto grid max-w-[1440px] border-b border-[var(--line)] lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+        <div className="px-5 py-16 md:px-10 md:py-24 lg:border-r lg:border-[var(--line)] lg:py-32">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--accent-strong)]">
+            Detection workspace / CPU-first
+          </p>
+          <h1 className="mt-8 max-w-[900px] text-[clamp(3.2rem,8vw,7.6rem)] font-medium leading-[0.84] tracking-[-0.075em]">
+            See what the model sees.
+          </h1>
+          <p className="mt-10 max-w-2xl text-lg leading-8 text-[var(--muted)] md:text-xl">
+            A focused image-analysis surface. Upload a frame, run the detection
+            contract, and inspect every box without ceremony.
+          </p>
         </div>
 
-        <section className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="fade-up rounded-[32px] border border-black/10 bg-[#fff7ee] p-6 shadow-[0_24px_70px_rgba(10,20,25,0.08)]">
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-black/45">
-              Why It Feels Like A Kit
-            </p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-              The repo is organized for iteration, not just inference.
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-black/68">
-              The point is to help you ship a computer-vision product faster. That means
-              the sample processing is only one layer. The bigger win is having a place
-              for contracts, scripts, UI patterns, and deployable app structure from day
-              one.
-            </p>
-          </div>
+        <aside className="flex flex-col justify-between bg-[var(--wash)] px-5 py-10 md:px-10 lg:py-14">
+          <p className="max-w-sm text-sm leading-7 text-[var(--muted)]">
+            The sample pipeline stays deliberately small. Replace the vision layer;
+            keep the interface and typed response boundary.
+          </p>
+          <dl className="mt-16 divide-y divide-[var(--line)] border-y border-[var(--line)] font-mono text-xs uppercase tracking-[0.13em]">
+            <div className="flex justify-between py-4">
+              <dt className="text-[var(--muted)]">Input</dt>
+              <dd>PNG / JPEG / WEBP</dd>
+            </div>
+            <div className="flex justify-between py-4">
+              <dt className="text-[var(--muted)]">Runtime</dt>
+              <dd>OpenCV CPU</dd>
+            </div>
+            <div className="flex justify-between py-4">
+              <dt className="text-[var(--muted)]">Output</dt>
+              <dd>Typed JSON</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {repoAreas.map((area, index) => (
-              <article
-                key={area.path}
-                className="fade-up rounded-[28px] border border-black/10 bg-white/76 p-5 shadow-[0_24px_70px_rgba(10,20,25,0.08)] backdrop-blur-xl"
-                style={{ animationDelay: `${index * 80}ms` }}
-              >
-                <p className="font-mono text-sm text-black/48">{area.path}</p>
-                <p className="mt-3 text-base leading-7 text-black/72">{area.detail}</p>
-              </article>
-            ))}
+      <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24" id="console">
+        <div className="mb-10 flex items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
+              Workspace 001
+            </p>
+            <h2 className="mt-2 text-3xl font-medium tracking-[-0.045em] md:text-5xl">
+              Detection console
+            </h2>
           </div>
-        </section>
+          <span className="hidden h-3 w-3 rounded-full bg-[var(--accent)] md:block" aria-hidden />
+        </div>
+        <InferenceConsole />
       </div>
+
+      <footer className="border-t border-[var(--line)] px-5 py-6 md:px-10">
+        <div className="mx-auto flex max-w-[1360px] justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
+          <span>Vision/01</span>
+          <span>Built for replacement, not decoration</span>
+        </div>
+      </footer>
     </main>
   );
 }

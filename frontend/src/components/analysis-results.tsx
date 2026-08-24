@@ -35,23 +35,23 @@ export function AnalysisResults({
       result.pipeline.tags.includes("segmentation"));
 
   return (
-    <div className="fade-up rounded-[32px] border border-black/10 bg-[#13262e] p-6 text-white shadow-[0_32px_90px_rgba(10,20,25,0.16)]">
+    <div className="fade-up bg-[#17211f] px-5 py-8 text-white lg:px-10">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/55">
             Response Shape
           </p>
           <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-            Typed detections, segmentations, metrics, and image metadata.
+            Typed detections, metrics, and image metadata.
           </h3>
         </div>
-        <div className="mesh-orb h-16 w-16 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,195,163,0.9),rgba(255,106,61,0.15))]" />
+        <span className="h-3 w-3 bg-[var(--accent)]" aria-hidden />
       </div>
 
       {result ? (
         <div className="mt-8 space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
+          <div className="grid border-y border-white/15 sm:grid-cols-2">
+            <div className="py-5 sm:border-r sm:border-white/15 sm:pr-5">
               <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
                 Analysis
               </p>
@@ -60,7 +60,7 @@ export function AnalysisResults({
                 {result.image.filename} · {result.image.width}x{result.image.height}
               </p>
             </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
+            <div className="py-5 sm:pl-5">
               <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
                 Pipeline
               </p>
@@ -69,13 +69,13 @@ export function AnalysisResults({
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-white/6 p-5">
+          <div className="border-b border-white/15 pb-6">
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
               Metrics
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {result.metrics.map((metric) => (
-                <div key={metric.name} className="rounded-[18px] bg-black/10 px-4 py-3">
+                <div key={metric.name} className="border-l border-white/20 pl-4 py-1">
                   <p className="text-xs uppercase tracking-[0.2em] text-white/45">
                     {metric.name.replaceAll("_", " ")}
                   </p>
@@ -137,7 +137,7 @@ export function AnalysisResults({
             </div>
           ) : null}
 
-          <div className="rounded-[24px] border border-white/10 bg-white/6 p-5">
+          <div className="border-b border-white/15 pb-6">
             <div className="flex items-center justify-between gap-4">
               <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
                 Detections
@@ -153,7 +153,7 @@ export function AnalysisResults({
                 {result.detections.map((detection, index) => (
                   <div
                     key={`${detection.label}-${index}`}
-                    className="rounded-[18px] border border-white/10 bg-black/10 px-4 py-3"
+                    className="border-t border-white/10 py-4"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <p className="font-semibold capitalize">
@@ -184,7 +184,7 @@ export function AnalysisResults({
           </div>
         </div>
       ) : (
-        <div className="mt-8 rounded-[28px] border border-dashed border-white/10 bg-white/4 px-6 py-12">
+        <div className="mt-8 border-y border-white/15 py-16">
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/45">
             {emptyEyebrow}
           </p>
