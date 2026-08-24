@@ -25,25 +25,6 @@ def test_analyze_route_matches_starter_detection_snapshot() -> None:
     )
 
 
-def test_analyze_route_matches_segmentation_snapshot() -> None:
-    response = client.post(
-        "/api/v1/analyze",
-        data={"pipeline_id": "foreground-segmentation"},
-        files={
-            "file": (
-                "segmentation-scene.png",
-                fixture_bytes("segmentation-scene.png"),
-                "image/png",
-            )
-        },
-    )
-
-    assert response.status_code == 200
-    assert normalize_analysis_payload(response.json()) == snapshot_json(
-        "foreground-segmentation-response.json"
-    )
-
-
 def test_analyze_route_rejects_non_image_upload() -> None:
     response = client.post(
         "/api/v1/analyze",

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { AnalysisPreview } from "@/components/analysis-preview";
@@ -217,20 +216,6 @@ export function InferenceConsole() {
                 {isPending ? "Running..." : "Analyze Image"}
               </button>
             </div>
-          </div>
-
-          <div className="rounded-[24px] border border-black/10 bg-[#fff4ea] px-4 py-4 text-sm text-black/70">
-            <p className="font-semibold text-[var(--foreground)]">Optional webcam mode</p>
-            <p className="mt-2 leading-7">
-              Once upload analysis feels right, reuse the same API contract from a live
-              camera capture flow instead of inventing a second backend path.
-            </p>
-            <Link
-              className="mt-3 inline-flex rounded-full border border-black/10 px-4 py-2 font-medium text-[var(--foreground)] transition hover:bg-black/5"
-              href="/webcam"
-            >
-              Open webcam mode
-            </Link>
           </div>
 
           {currentPipeline ? (

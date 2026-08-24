@@ -22,33 +22,6 @@ export const demoPipelines: PipelineSummary[] = [
     runtime: "opencv-cpu",
     sample_outputs: ["object boxes", "confidence scores", "coverage metrics"],
   },
-  {
-    id: "foreground-segmentation",
-    name: "Foreground Segmentation",
-    summary:
-      "Segmentation extension pipeline that returns region polygons plus detection-style boxes.",
-    tags: ["segmentation", "extension", "cpu"],
-    runtime: "opencv-cpu",
-    sample_outputs: ["region polygons", "mask coverage", "derived boxes"],
-  },
-  {
-    id: "document-layout",
-    name: "Document Layout",
-    summary:
-      "Document-oriented box extraction for capture, scanning, and kiosk workflows.",
-    tags: ["detection", "document", "cpu"],
-    runtime: "opencv-cpu",
-    sample_outputs: ["quadrilateral candidates", "layout blocks"],
-  },
-  {
-    id: "dominant-color",
-    name: "Dominant Color",
-    summary:
-      "Metrics-only extension pipeline for quality and image analytics workflows.",
-    tags: ["analytics", "extension", "cpu"],
-    runtime: "opencv-cpu",
-    sample_outputs: ["channel metrics", "brightness"],
-  },
 ];
 
 export function getPreferredPipelineId(

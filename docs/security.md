@@ -32,10 +32,6 @@ The repository also uses automated scanning to help catch common security issues
 - `gitleaks` in CI for tracked git content
 - CodeQL code scanning on GitHub for JavaScript/TypeScript, Python, and workflow files
 - GitHub dependency review on pull requests for newly introduced vulnerable dependency changes
-- GitHub SBOM artifacts for the repository source and runner images
-- GitHub build-provenance attestations for published release images
-
-Tagged releases also include attached SPDX SBOM files and release-note verification snippets for the published container images.
 
 Dependency review is also configured with an allowlist that matches the current dependency tree, so changes that introduce new license types are surfaced deliberately instead of silently drifting in.
 
