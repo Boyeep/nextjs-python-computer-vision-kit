@@ -169,12 +169,13 @@ export function InferenceConsole() {
 
   return (
     <section className="relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
-      <form className="flex min-h-0 flex-col bg-[#dbe5d8] p-4 md:p-5 max-lg:grid max-lg:grid-cols-[1fr_1.4fr_auto] max-lg:items-center max-lg:gap-4" onSubmit={handleSubmit}>
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Workspace</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.05em]">Image lab</h1>
+      <form className="flex min-h-0 flex-col bg-[#dbe5d8] p-3 sm:p-4 lg:p-5" onSubmit={handleSubmit}>
+        <div className="flex items-center justify-between lg:block">
+          <p className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] lg:block">Workspace</p>
+          <h1 className="text-lg font-semibold tracking-[-0.05em] lg:mt-2 lg:text-2xl">Image lab</h1>
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)] lg:hidden">{connectionMode === "live" ? "API live" : connectionMode === "fallback" ? "API offline" : "Connecting"}</span>
         </div>
-        <div className="mt-6 space-y-4 max-lg:mt-0 max-lg:grid max-lg:grid-cols-2 max-lg:gap-3 max-lg:space-y-0">
+        <div className="mt-3 grid grid-cols-2 gap-2.5 lg:mt-6 lg:block lg:space-y-4">
           <label className="block">
             <span className="mb-2 block text-xs font-medium text-[var(--muted)]">Pipeline</span>
             <span className="relative block">
@@ -191,18 +192,18 @@ export function InferenceConsole() {
               <button className={`cursor-pointer rounded-xl transition ${inputMode === "camera" ? "bg-white shadow-sm" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`} onClick={() => changeInputMode("camera")} type="button">Camera</button>
             </div>
           </div>
-          {inputMode === "upload" ? <label className="group col-span-full flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] bg-white/55 px-4 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] max-lg:min-h-11 max-lg:flex-row max-lg:gap-2">
-              <span className="text-xl text-[var(--accent)]">＋</span><span className="text-sm font-semibold">Choose image</span><span className="mt-1 max-w-full truncate text-[11px] text-[var(--muted)]">{file?.name ?? "PNG, JPG or WEBP"}</span>
+          {inputMode === "upload" ? <label className="group col-span-full flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/55 px-3 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] lg:min-h-20 lg:flex-col lg:gap-0 lg:rounded-[1.5rem] lg:px-4">
+              <span className="text-lg text-[var(--accent)] lg:text-xl">＋</span><span className="text-xs font-semibold lg:text-sm">Choose image</span><span className="hidden mt-1 max-w-full truncate text-[11px] text-[var(--muted)] lg:block">{file?.name ?? "PNG, JPG or WEBP"}</span>
               <input accept="image/png,image/jpeg,image/webp" className="sr-only" type="file" onChange={handleFileChange} />
             </label> : <button className={`col-span-full flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 text-xs font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
               <svg aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"><path d="M15 10.5 19.5 8v8L15 13.5m-9.5-7h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
               {isCameraActive ? "Stop camera" : "Start camera"}
             </button>}
         </div>
-        <div className="mt-auto space-y-3 pt-5 max-lg:mt-0 max-lg:pt-0">
-          {error ? <p className="rounded-2xl bg-[#f5d8ce] px-3 py-2 text-xs text-[#762f20]" role="alert">{error}</p> : null}
-          <button className="h-12 w-full rounded-full bg-[var(--accent)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45" disabled={inputMode === "camera" || isPending || !selectedPipeline} type="submit">{inputMode === "camera" ? (isCameraActive ? "Detecting live…" : "Camera is off") : isPending ? "Analyzing…" : "Run analysis"}</button>
-          <p className="text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)]">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "API offline" : "Connecting"}</p>
+        <div className="mt-3 space-y-2 lg:mt-auto lg:space-y-3 lg:pt-5">
+          {error ? <p className="rounded-xl bg-[#f5d8ce] px-3 py-2 text-[11px] leading-4 text-[#762f20] lg:rounded-2xl lg:text-xs" role="alert">{error}</p> : null}
+          <button className="h-11 w-full rounded-xl bg-[var(--accent)] text-xs font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45 lg:h-12 lg:rounded-full lg:text-sm" disabled={inputMode === "camera" || isPending || !selectedPipeline} type="submit">{inputMode === "camera" ? (isCameraActive ? "Detecting live…" : "Camera is off") : isPending ? "Analyzing…" : "Run analysis"}</button>
+          <p className="hidden text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)] lg:block">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "API offline" : "Connecting"}</p>
         </div>
       </form>
 
