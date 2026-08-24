@@ -26,7 +26,6 @@ Strong templates usually have two layers:
 The product layer changes from repo to repo. The template-grade layer is the part worth reusing almost anywhere:
 
 - contributor docs
-- agent docs
 - root scripts
 - split CI
 - release automation
@@ -49,8 +48,6 @@ Build the second layer early, not after the repo gets messy.
 - `SECURITY.md`
 - `CODE_OF_CONDUCT.md` for public/community-facing templates
 - `LICENSE` for public templates
-- `AGENTS.md` or equivalent internal guidance
-- tool-specific agent guidance only if you actively maintain it
 - short roadmap file like `soon.md`
 
 ### Root Commands
@@ -102,14 +99,13 @@ Keep:
 
 - `README.md`
 - `CONTRIBUTING.md`
-- `AGENTS.md`
 - `SECURITY.md`
 - `soon.md`
 
 Why it matters:
 
 - makes the repo understandable without tribal knowledge
-- gives both humans and coding agents a safe workflow
+- gives maintainers a safe workflow
 - reduces setup mistakes and PR drift
 - makes the template feel production-minded instead of demo-only
 
@@ -117,7 +113,6 @@ Generic takeaway:
 
 - every serious starter should have a short public README
 - every serious starter should have a contributor guide
-- every serious starter should have an internal or agent-facing rules file
 - every public starter should have a security reporting path
 - every public starter should usually ship a code of conduct and explicit license
 - tool-specific AI guidance should be optional and maintained, not sprayed everywhere by default
@@ -422,7 +417,6 @@ CONTRIBUTING.md
 SECURITY.md
 CODE_OF_CONDUCT.md
 LICENSE
-AGENTS.md
 soon.md
 .github/CODEOWNERS
 .github/dependabot.yml
@@ -478,7 +472,6 @@ For most future non-domain-specific starters, preserve this rough shape:
 - contributor guide
 - security policy
 - code of conduct and license for public templates
-- agent guidance
 - roadmap file
 
 ### Local DX
@@ -551,7 +544,6 @@ This is the minimum point where a repo starts feeling dependable.
 
 If you want the version that scales better for open source or long-term reuse, also add:
 
-- `AGENTS.md`
 - `CODE_OF_CONDUCT.md`
 - `LICENSE`
 - workflow lint
@@ -637,6 +629,6 @@ If I were starting another template tomorrow, I would copy this pattern first:
 3. release automation
 4. security scanning
 5. governance files
-6. contributor and agent docs
+6. contributor and maintainer docs
 
 Then I would build the domain-specific product layer on top.
