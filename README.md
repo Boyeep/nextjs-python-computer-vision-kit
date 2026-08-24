@@ -1,5 +1,14 @@
 # nextjs-python-computer-vision-kit
 
+[![npm version](https://img.shields.io/npm/v/%40boyeep%2Fnextjs-python-computer-vision-kit)](https://www.npmjs.com/package/@boyeep/nextjs-python-computer-vision-kit) [![npm downloads](https://img.shields.io/npm/dm/%40boyeep%2Fnextjs-python-computer-vision-kit)](https://www.npmjs.com/package/@boyeep/nextjs-python-computer-vision-kit) [![license](https://img.shields.io/github/license/Boyeep/nextjs-python-computer-vision-kit)](https://github.com/Boyeep/nextjs-python-computer-vision-kit/blob/main/LICENSE)
+
+Create a project directly from npm:
+
+```bash
+npx @boyeep/nextjs-python-computer-vision-kit my-vision-app
+```
+
+
 A product-minded monorepo starter for detection-first computer vision apps built with Next.js and FastAPI.
 
 It gives you a polished upload-to-inference UI, a typed OpenAPI contract, and CPU-friendly starter pipelines behind a replaceable service boundary.
