@@ -29,6 +29,8 @@ export function InferenceConsole() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const liveRequestRef = useRef(false);
+  const cameraRequestRef = useRef(0);
+  const analysisRequestRef = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,7 +44,12 @@ export function InferenceConsole() {
 
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
-  useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
+  useEffect(() => () => {
+    cameraRequestRef.current += 1;
+    analysisRequestRef.current += 1;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (isCameraActive && videoRef.current && streamRef.current) {
@@ -54,6 +61,7 @@ export function InferenceConsole() {
     if (!isCameraActive) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
+    const sourceGeneration = analysisRequestRef.current;
 
     async function detectFrame() {
       const video = videoRef.current;
@@ -74,7 +82,7 @@ export function InferenceConsole() {
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
         if (!blob || cancelled) return;
         const cameraResult = await analyzeImage({ file: new File([blob], "live-camera.jpg", { type: "image/jpeg" }), pipelineId: selectedPipeline });
-        if (!cancelled) {
+        if (!cancelled && sourceGeneration === analysisRequestRef.current) {
           setResult(cameraResult);
           setError(null);
         }
@@ -94,6 +102,7 @@ export function InferenceConsole() {
   }, [detectionInterval, isCameraActive, selectedPipeline]);
 
   function stopCamera() {
+    cameraRequestRef.current += 1;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -101,10 +110,16 @@ export function InferenceConsole() {
   }
 
   async function startCamera() {
+    const requestGeneration = cameraRequestRef.current + 1;
+    cameraRequestRef.current = requestGeneration;
+
     if (connectionMode === "fallback") {
       setConnectionMode("checking");
       const payload = await fetchPipelineCatalog();
+      if (requestGeneration !== cameraRequestRef.current) return;
+      setPipelines(payload.pipelines);
       setConnectionMode(payload.source);
+      setSelectedPipeline((current) => getPreferredPipelineId(payload.pipelines, current));
       if (payload.source === "fallback") {
         setError("Vision API is offline. Run npm run dev from the repository root, then retry.");
         return;
@@ -113,16 +128,24 @@ export function InferenceConsole() {
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFacing }, audio: false });
+      if (requestGeneration !== cameraRequestRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       setIsCameraActive(true);
     } catch {
-      setError("Camera access failed. Check your browser permission.");
+      if (requestGeneration === cameraRequestRef.current) {
+        setError("Camera access failed. Check your browser permission.");
+      }
     }
   }
 
   function changeInputMode(mode: "upload" | "camera") {
     if (mode === "upload") stopCamera();
+    analysisRequestRef.current += 1;
+    setResult(null);
     setInputMode(mode);
     setError(null);
   }
@@ -132,12 +155,20 @@ export function InferenceConsole() {
     stopCamera();
     setCameraFacing(facing);
     if (shouldRestart) {
+      const requestGeneration = cameraRequestRef.current + 1;
+      cameraRequestRef.current = requestGeneration;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+        if (requestGeneration !== cameraRequestRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         streamRef.current = stream;
         setIsCameraActive(true);
       } catch {
-        setError("Unable to switch camera. Check device availability.");
+        if (requestGeneration === cameraRequestRef.current) {
+          setError("Unable to switch camera. Check device availability.");
+        }
       }
     }
   }
@@ -145,6 +176,7 @@ export function InferenceConsole() {
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const nextFile = event.target.files?.[0] ?? null;
     setFile(nextFile); setResult(null); setError(null); setPreviewDimensions(null);
+    analysisRequestRef.current += 1;
     previewRequestRef.current += 1;
     if (!nextFile) {
       setPreviewUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
@@ -162,7 +194,9 @@ export function InferenceConsole() {
     event.preventDefault();
     if (!file) { setError("Choose an image first."); return; }
     setError(null);
-    startTransition(() => { void analyzeImage({ file, pipelineId: selectedPipeline }).then(setResult).catch((cause) => { setResult(null); setError(cause instanceof Error ? cause.message : "Analysis failed."); }); });
+    const requestGeneration = analysisRequestRef.current + 1;
+    analysisRequestRef.current = requestGeneration;
+    startTransition(() => { void analyzeImage({ file, pipelineId: selectedPipeline }).then((nextResult) => { if (requestGeneration === analysisRequestRef.current) setResult(nextResult); }).catch((cause) => { if (requestGeneration === analysisRequestRef.current) { setResult(null); setError(cause instanceof Error ? cause.message : "Analysis failed."); } }); });
   }
 
   const detections = result?.detections ?? [];
