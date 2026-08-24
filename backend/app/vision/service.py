@@ -12,8 +12,6 @@ from app.schemas import (
     ImageMetadata,
     Metric,
     PipelineSummary,
-    PolygonPoint,
-    SegmentationRegion,
 )
 from app.vision.pipelines import PipelineDefinition
 
@@ -24,59 +22,6 @@ class UnknownPipelineError(ValueError):
 
 class InvalidImageError(ValueError):
     pass
-
-
-def _contour_to_polygon(contour: np.ndarray) -> list[PolygonPoint]:
-    perimeter = cv2.arcLength(contour, True)
-    polygon = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-
-    if len(polygon) < 3:
-        x, y, width, height = cv2.boundingRect(contour)
-        return [
-            PolygonPoint(x=x, y=y),
-            PolygonPoint(x=x + width, y=y),
-            PolygonPoint(x=x + width, y=y + height),
-            PolygonPoint(x=x, y=y + height),
-        ]
-
-    return [
-        PolygonPoint(x=int(point[0][0]), y=int(point[0][1]))
-        for point in polygon[:24]
-    ]
-
-
-def _partition_significant_contours(
-    contours: list[np.ndarray],
-    image_area: int,
-) -> tuple[list[np.ndarray], list[np.ndarray]]:
-    significant: list[np.ndarray] = []
-    near_full_frame: list[np.ndarray] = []
-
-    for contour in contours:
-        area_ratio = cv2.contourArea(contour) / image_area
-        if area_ratio < 0.02:
-            continue
-
-        x, y, width, height = cv2.boundingRect(contour)
-        box_area_ratio = (width * height) / image_area
-        if area_ratio >= 0.9 or box_area_ratio >= 0.94:
-            near_full_frame.append(contour)
-            continue
-
-        significant.append(contour)
-
-    return significant, near_full_frame
-
-
-def _select_significant_contours(
-    contours: list[np.ndarray],
-    image_area: int,
-) -> list[np.ndarray]:
-    significant, near_full_frame = _partition_significant_contours(
-        contours,
-        image_area,
-    )
-    return significant or near_full_frame[:1]
 
 
 def _starter_detection(image: np.ndarray) -> tuple[list[dict], list[dict], list[dict]]:
@@ -118,170 +63,6 @@ def _starter_detection(image: np.ndarray) -> tuple[list[dict], list[dict], list[
     return detections, [], metrics
 
 
-def _document_layout(image: np.ndarray) -> tuple[list[dict], list[dict], list[dict]]:
-    grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    thresholded = cv2.adaptiveThreshold(
-        grayscale,
-        255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,
-        21,
-        9,
-    )
-    contours, _ = cv2.findContours(
-        thresholded,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE,
-    )
-
-    image_area = image.shape[0] * image.shape[1]
-    detections = []
-    rectangular_regions = 0
-
-    for contour in sorted(contours, key=cv2.contourArea, reverse=True):
-        perimeter = cv2.arcLength(contour, True)
-        polygon = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-        x, y, width, height = cv2.boundingRect(polygon)
-        area_ratio = (width * height) / image_area
-        if area_ratio < 0.02:
-            continue
-
-        label = "document-candidate" if len(polygon) == 4 else "layout-block"
-        if len(polygon) == 4:
-            rectangular_regions += 1
-
-        detections.append(
-            {
-                "label": label,
-                "confidence": min(0.97, round(0.5 + area_ratio * 2.0, 3)),
-                "box": BoundingBox(x=x, y=y, width=width, height=height),
-                "area_ratio": round(area_ratio, 4),
-            }
-        )
-
-    metrics = [
-        {"name": "rectangular_regions", "value": rectangular_regions},
-        {"name": "layout_candidates", "value": len(detections)},
-    ]
-
-    return detections, [], metrics
-
-
-def _foreground_segmentation(
-    image: np.ndarray,
-) -> tuple[list[dict], list[dict], list[dict]]:
-    grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(grayscale, (7, 7), 0)
-    _, thresholded = cv2.threshold(
-        blurred,
-        0,
-        255,
-        cv2.THRESH_BINARY + cv2.THRESH_OTSU,
-    )
-
-    inverse = cv2.bitwise_not(thresholded)
-    candidates = [thresholded, inverse]
-    image_area = image.shape[0] * image.shape[1]
-
-    best_mask = thresholded
-    best_score = -1.0
-    best_has_non_full_contours = False
-
-    for candidate in candidates:
-        cleaned = cv2.morphologyEx(
-            candidate,
-            cv2.MORPH_OPEN,
-            np.ones((5, 5), dtype=np.uint8),
-        )
-        raw_contours, _ = cv2.findContours(
-            cleaned,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE,
-        )
-        significant, near_full_frame = _partition_significant_contours(
-            raw_contours,
-            image_area,
-        )
-        candidate_contours = significant or near_full_frame[:1]
-        has_non_full_contours = bool(significant)
-        score = (
-            sum(cv2.contourArea(contour) for contour in candidate_contours) / image_area
-        )
-        if (
-            has_non_full_contours and not best_has_non_full_contours
-        ) or (
-            has_non_full_contours == best_has_non_full_contours and score > best_score
-        ):
-            best_score = score
-            best_mask = cleaned
-            best_has_non_full_contours = has_non_full_contours
-
-    raw_contours, _ = cv2.findContours(
-        best_mask,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE,
-    )
-    contours = _select_significant_contours(raw_contours, image_area)
-
-    detections = []
-    segmentations = []
-    coverage_ratio = 0.0
-
-    for contour in sorted(contours, key=cv2.contourArea, reverse=True):
-        area_ratio = cv2.contourArea(contour) / image_area
-        if area_ratio < 0.02:
-            continue
-
-        x, y, width, height = cv2.boundingRect(contour)
-        polygon = _contour_to_polygon(contour)
-        label = "primary-mask" if area_ratio >= 0.12 else "segment-region"
-        confidence = min(0.97, round(0.5 + area_ratio * 2.0, 3))
-        box = BoundingBox(x=x, y=y, width=width, height=height)
-
-        detections.append(
-            {
-                "label": label,
-                "confidence": confidence,
-                "box": box,
-                "area_ratio": round(area_ratio, 4),
-            }
-        )
-        segmentations.append(
-            {
-                "label": label,
-                "confidence": confidence,
-                "polygon": polygon,
-                "box": box,
-                "area_ratio": round(area_ratio, 4),
-            }
-        )
-        coverage_ratio += area_ratio
-
-    metrics = [
-        {"name": "segmented_regions", "value": len(segmentations)},
-        {"name": "segmented_coverage", "value": round(min(coverage_ratio, 1.0), 4)},
-    ]
-
-    return detections, segmentations, metrics
-
-
-def _dominant_color(image: np.ndarray) -> tuple[list[dict], list[dict], list[dict]]:
-    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    means = rgb.mean(axis=(0, 1))
-    brightness = float(means.mean())
-    dominant_channel = ["red", "green", "blue"][int(np.argmax(means))]
-
-    metrics = [
-        {"name": "dominant_channel", "value": dominant_channel},
-        {"name": "mean_red", "value": round(float(means[0]), 2)},
-        {"name": "mean_green", "value": round(float(means[1]), 2)},
-        {"name": "mean_blue", "value": round(float(means[2]), 2)},
-        {"name": "brightness", "value": round(brightness, 2), "unit": "0-255"},
-    ]
-
-    return [], [], metrics
-
-
 PIPELINE_REGISTRY: dict[str, PipelineDefinition] = {
     "starter-detection": PipelineDefinition(
         id="starter-detection",
@@ -294,42 +75,6 @@ PIPELINE_REGISTRY: dict[str, PipelineDefinition] = {
         runtime="opencv-cpu",
         sample_outputs=["object boxes", "confidence scores", "coverage metrics"],
         handler=_starter_detection,
-    ),
-    "document-layout": PipelineDefinition(
-        id="document-layout",
-        name="Document Layout",
-        summary=(
-            "Document-oriented box extraction for capture, scanning, and kiosk "
-            "workflows."
-        ),
-        tags=["detection", "document", "cpu"],
-        runtime="opencv-cpu",
-        sample_outputs=["quadrilateral candidates", "layout blocks"],
-        handler=_document_layout,
-    ),
-    "foreground-segmentation": PipelineDefinition(
-        id="foreground-segmentation",
-        name="Foreground Segmentation",
-        summary=(
-            "Segmentation extension pipeline that returns region polygons plus "
-            "detection-style boxes."
-        ),
-        tags=["segmentation", "extension", "cpu"],
-        runtime="opencv-cpu",
-        sample_outputs=["region polygons", "mask coverage", "derived boxes"],
-        handler=_foreground_segmentation,
-    ),
-    "dominant-color": PipelineDefinition(
-        id="dominant-color",
-        name="Dominant Color",
-        summary=(
-            "Metrics-only extension pipeline for quality and image analytics "
-            "workflows."
-        ),
-        tags=["analytics", "extension", "cpu"],
-        runtime="opencv-cpu",
-        sample_outputs=["channel metrics", "brightness"],
-        handler=_dominant_color,
     ),
 }
 
@@ -370,9 +115,8 @@ def analyze_image(
     if image is None:
         raise InvalidImageError("Unable to decode the uploaded image.")
 
-    raw_detections, raw_segmentations, raw_metrics = pipeline.handler(image)
+    raw_detections, _, raw_metrics = pipeline.handler(image)
     limited_detections = raw_detections[: settings.sample_max_detections]
-    limited_segmentations = raw_segmentations[: settings.sample_max_detections]
 
     return AnalyzeResponse(
         analysis_id=f"analysis_{uuid4().hex[:12]}",
@@ -399,16 +143,7 @@ def analyze_image(
             )
             for item in limited_detections
         ],
-        segmentations=[
-            SegmentationRegion(
-                label=item["label"],
-                confidence=item["confidence"],
-                polygon=item["polygon"],
-                box=item["box"],
-                area_ratio=item.get("area_ratio"),
-            )
-            for item in limited_segmentations
-        ],
+        segmentations=[],
         metrics=[
             Metric(
                 name=item["name"],

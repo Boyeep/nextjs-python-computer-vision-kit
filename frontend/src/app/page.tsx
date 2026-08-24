@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { InferenceConsole } from "@/components/inference-console";
 
 const pillars = [
@@ -14,9 +12,9 @@ const pillars = [
       "Keep frontend and backend aligned through one inference contract that survives model changes later.",
   },
   {
-    title: "Optional Webcam Mode",
+    title: "Replaceable Vision Layer",
     description:
-      "Add live camera capture as a frontend extension after upload works well, instead of making it the repo's main story.",
+      "Keep model-specific work behind the API so the product interface stays stable as inference evolves.",
   },
 ];
 
@@ -65,8 +63,7 @@ export default function Home() {
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-black/70 sm:text-lg">
               The starter keeps one clear happy path: upload an image, run detection,
-              inspect boxes and metrics, and keep the same contract when you switch to
-              the built-in segmentation extension, add webcam capture, or move to a
+              inspect boxes and metrics, and keep the same contract when you move to a
               heavier model backend.
             </p>
 
@@ -77,12 +74,6 @@ export default function Home() {
               >
                 Explore Vision Console
               </a>
-              <Link
-                className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-black/5"
-                href="/webcam"
-              >
-                Optional Webcam Mode
-              </Link>
               <span className="rounded-full border border-black/10 px-5 py-3 font-mono text-sm text-black/60">
                 Root commands: `dev`, `check`, `api:types`
               </span>
@@ -109,7 +100,7 @@ export default function Home() {
               <div className="rounded-[22px] border border-white/10 bg-white/6 p-5">
                 <p className="text-sm text-white/60">Upgrade path</p>
                 <p className="mt-2 text-xl font-semibold tracking-tight">
-                  Add webcam and segmentation later without changing the contract boundary.
+                  Replace the sample pipelines without changing the contract boundary.
                 </p>
               </div>
             </div>

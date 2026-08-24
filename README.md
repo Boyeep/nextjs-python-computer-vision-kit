@@ -2,22 +2,13 @@
 
 A product-minded monorepo starter for detection-first computer vision apps built with Next.js and FastAPI.
 
-It gives you a polished upload-to-inference UI, a typed OpenAPI contract, CPU-friendly starter pipelines, and a clean path into webcam capture, segmentation, and heavier model backends later.
+It gives you a polished upload-to-inference UI, a typed OpenAPI contract, and CPU-friendly starter pipelines behind a replaceable service boundary.
 
 <p>
   <a href="#quick-start">Quick start</a> ·
-  <a href="#screenshots">Screenshots</a> ·
   <a href="#what-you-get">What you get</a> ·
-  <a href="./CONTRIBUTING.md">Contributing</a> ·
-  <a href="./SECURITY.md">Security</a> ·
-  <a href="./soon.md">Roadmap</a>
+  <a href="./docs/security.md">Security</a>
 </p>
-
-## Screenshots
-
-![Vision console screenshot](docs/assets/vision-console.png)
-
-![Webcam extension screenshot](docs/assets/webcam-extension.png)
 
 ## Why This Repo Exists
 
@@ -31,7 +22,7 @@ This kit sits in the middle. It starts with a real product flow:
 - upload an image
 - run a detection-oriented pipeline
 - inspect typed boxes, metrics, and image metadata
-- keep the same contract when you add segmentation or webcam capture later
+- keep the same contract when you replace or extend the inference backend
 
 ## What You Get
 
@@ -39,7 +30,6 @@ This kit sits in the middle. It starts with a real product flow:
 - inference-first architecture with a separate Next.js frontend and FastAPI backend
 - shared OpenAPI contract in `docs/openapi.yaml`
 - generated frontend API types from `openapi-typescript`
-- optional webcam extension that reuses the same API surface
 - first live segmentation extension with polygons, masks, and derived boxes
 - CPU-first OpenCV sample pipelines that are easy to replace later
 - root dev and verification scripts for a monorepo-style workflow
@@ -59,15 +49,11 @@ This kit sits in the middle. It starts with a real product flow:
 ## Included Pipelines
 
 - `starter-detection`: default object-style detection flow for the main UI
-- `foreground-segmentation`: first extension pipeline with polygons plus derived boxes
-- `document-layout`: document-style region extraction for capture and scanning products
-- `dominant-color`: metrics-only example for QA and analytics workflows
-
-These pipelines are intentionally lightweight. They prove the repo shape and developer workflow without forcing you into toy logic forever. Swap them for YOLO, ONNX Runtime, PyTorch, TensorRT, or a hosted inference service when you are ready.
+The starter pipeline is intentionally lightweight. It proves the repo shape and developer workflow without forcing a model stack. Swap it for YOLO, ONNX Runtime, PyTorch, TensorRT, or a hosted inference service when you are ready.
 
 ## Repo Shape
 
-- `frontend/`: Next.js app shell, upload flow, webcam flow, and generated API types
+- `frontend/`: Next.js app shell, upload flow, and generated API types
 - `backend/`: FastAPI service, pipeline registry, validation, and starter image logic
 - `docs/`: OpenAPI contract and screenshot assets
 - `scripts/`: root development and verification commands
@@ -95,8 +81,6 @@ npm run dev
 npm run dev:down
 npm run api:types
 npm run check:contract
-npm run check:images
-npm run report:licenses
 npm run check:secrets
 npm run check:workflows
 npm run check
@@ -113,31 +97,11 @@ The root check runs:
 - backend `pytest`
 - backend `compileall`
 
-`check:images` is separate and intended for environments where a Docker daemon is available.
-
-`report:licenses` generates local npm and Python license inventories in `reports/licenses/`.
-
 `check:secrets` scans tracked git content with a pinned `gitleaks` version via Go.
 
 `check:workflows` lints `.github/workflows/` with a pinned `actionlint` version via Go.
 
 CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
-
-A separate GitHub workflow generates license-report artifacts for the root workspace, frontend workspace, and backend Python environment.
-
-An SBOM workflow also publishes SPDX artifacts for the repository source plus the frontend and backend runner images.
-
-## Releases
-
-- Release Drafter keeps a draft release updated from merged pull requests on `main` and can auto-label incoming pull requests by path.
-- Path-based labels help sort PRs into frontend, backend, CI/CD, docs, and maintenance categories automatically.
-- Release Drafter defaults to a patch bump unless a maintainer applies `minor` or `major` to the pull request.
-- Pushing a tag like `v0.1.0` triggers the release workflow.
-- That workflow verifies the tagged commit, publishes backend/frontend images to GHCR, and creates a GitHub Release with generated notes.
-- The release workflow also generates build-provenance attestations for the published GHCR images and links them from the release notes.
-- The GitHub Release also includes attached SPDX SBOM assets for the source tree and both runner images.
-- A follow-up smoke workflow pulls those published GHCR images and checks backend health, a real inference request, and the frontend shell before you treat the release as healthy.
-- Maintainers can re-run the same check manually with `BACKEND_IMAGE=... FRONTEND_IMAGE=... npm run check:release-smoke`.
 
 ## Contract Notes
 
@@ -149,18 +113,11 @@ An SBOM workflow also publishes SPDX artifacts for the repository source plus th
 ## Recommended Growth Path
 
 1. Keep the main story detection-first.
-2. Add webcam polish once upload mode feels strong.
-3. Add segmentation depth without changing the response boundary.
-4. Introduce a real model adapter layer.
-5. Split training and experimentation into a separate workspace later.
+2. Introduce a real model adapter behind the existing service boundary.
+3. Split training and experimentation into a separate workspace later.
 
-The short public roadmap lives in [soon.md](./soon.md).
-A sign-language adaptation roadmap for this template lives in [roadmap.md](./roadmap.md).
+The project documentation lives in [`docs/`](./docs/).
 
 ## Repository Standards
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-- [LICENSE](./LICENSE)
-- [SECURITY.md](./SECURITY.md)
-- [template-playbook.md](./template-playbook.md)
+- [Security](./docs/security.md)
