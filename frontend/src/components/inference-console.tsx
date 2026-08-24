@@ -19,6 +19,7 @@ export function InferenceConsole() {
   const previewRequestRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const liveRequestRef = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,6 +40,46 @@ export function InferenceConsole() {
       videoRef.current.srcObject = streamRef.current;
     }
   }, [isCameraActive]);
+
+  useEffect(() => {
+    if (!isCameraActive) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    async function detectFrame() {
+      const video = videoRef.current;
+      if (!video || !video.videoWidth || !video.videoHeight || liveRequestRef.current) {
+        if (!cancelled) timer = setTimeout(detectFrame, 500);
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      liveRequestRef.current = true;
+
+      try {
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+        if (!blob || cancelled) return;
+        const cameraResult = await analyzeImage({ file: new File([blob], "live-camera.jpg", { type: "image/jpeg" }), pipelineId: selectedPipeline });
+        if (!cancelled) {
+          setResult(cameraResult);
+          setError(null);
+        }
+      } catch {
+        if (!cancelled) setError("Live detection paused. Check the API connection.");
+      } finally {
+        liveRequestRef.current = false;
+        if (!cancelled) timer = setTimeout(detectFrame, 900);
+      }
+    }
+
+    void detectFrame();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [isCameraActive, selectedPipeline]);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -63,27 +104,6 @@ export function InferenceConsole() {
     if (mode === "upload") stopCamera();
     setInputMode(mode);
     setError(null);
-  }
-
-  function captureFrame() {
-    const video = videoRef.current;
-    if (!video || !video.videoWidth || !video.videoHeight) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const capturedFile = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
-      const nextPreviewUrl = URL.createObjectURL(capturedFile);
-      setFile(capturedFile);
-      setResult(null);
-      setPreviewDimensions({ width: canvas.width, height: canvas.height });
-      setPreviewUrl((current) => { if (current) URL.revokeObjectURL(current); return nextPreviewUrl; });
-      stopCamera();
-    }, "image/jpeg", 0.92);
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -139,11 +159,14 @@ export function InferenceConsole() {
           {inputMode === "upload" ? <label className="group col-span-full flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] bg-white/55 px-4 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] max-lg:min-h-11 max-lg:flex-row max-lg:gap-2">
               <span className="text-xl text-[var(--accent)]">＋</span><span className="text-sm font-semibold">Choose image</span><span className="mt-1 max-w-full truncate text-[11px] text-[var(--muted)]">{file?.name ?? "PNG, JPG or WEBP"}</span>
               <input accept="image/png,image/jpeg,image/webp" className="sr-only" type="file" onChange={handleFileChange} />
-            </label> : <button className="col-span-full h-12 cursor-pointer rounded-full bg-white/65 text-sm font-semibold transition hover:bg-white" onClick={isCameraActive ? captureFrame : () => void startCamera()} type="button">{isCameraActive ? "Capture frame" : "Start camera"}</button>}
+            </label> : <button className={`col-span-full flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
+              <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24"><path d="M15 10.5 19.5 8v8L15 13.5m-9.5-7h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+              {isCameraActive ? "Stop live camera" : "Start live camera"}
+            </button>}
         </div>
         <div className="mt-auto space-y-3 pt-5 max-lg:mt-0 max-lg:pt-0">
           {error ? <p className="rounded-2xl bg-[#f5d8ce] px-3 py-2 text-xs text-[#762f20]" role="alert">{error}</p> : null}
-          <button className="h-12 w-full rounded-full bg-[var(--accent)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:opacity-45" disabled={isPending || !selectedPipeline} type="submit">{isPending ? "Analyzing…" : "Run analysis"}</button>
+          <button className="h-12 w-full rounded-full bg-[var(--accent)] text-sm font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45" disabled={inputMode === "camera" || isPending || !selectedPipeline} type="submit">{inputMode === "camera" ? (isCameraActive ? "Detecting live…" : "Camera is off") : isPending ? "Analyzing…" : "Run analysis"}</button>
           <p className="text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)]">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "Demo catalog" : "Connecting"}</p>
         </div>
       </form>
@@ -154,7 +177,14 @@ export function InferenceConsole() {
           {result ? <span className="rounded-full bg-[var(--lime)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em]">Complete</span> : null}
         </div>
         <div className="vision-preview relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-[#e7e9e1] p-2">
-          {inputMode === "camera" && isCameraActive ? <><video ref={videoRef} autoPlay className="h-full w-full rounded-[1.25rem] bg-[#17211f] object-contain" muted playsInline /><button className="absolute bottom-5 left-1/2 h-14 w-14 -translate-x-1/2 cursor-pointer rounded-full bg-white p-1 shadow-xl transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" aria-label="Capture frame" onClick={captureFrame} type="button"><span className="block h-full w-full rounded-full bg-[var(--accent)]" /></button></> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
+          {inputMode === "camera" && isCameraActive ? <div className="relative h-full overflow-hidden rounded-[1.25rem] bg-[#17211f]">
+            <video ref={videoRef} autoPlay className="h-full w-full scale-x-[-1] object-contain" muted playsInline />
+            {result ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid meet" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
+              {result.detections.map((detection, index) => { const mirroredX = result.image.width - detection.box.x - detection.box.width; return <g key={`${detection.label}-${index}`}><rect fill="none" height={detection.box.height} rx="8" stroke="#ff7a45" strokeWidth="3" width={detection.box.width} x={mirroredX} y={detection.box.y} /><rect fill="#17211f" height="28" rx="8" width="118" x={mirroredX} y={Math.max(4, detection.box.y - 32)} /><text fill="white" fontFamily="monospace" fontSize="12" fontWeight="600" x={mirroredX + 9} y={Math.max(22, detection.box.y - 13)}>{`${detection.label.slice(0, 11)} ${Math.round(detection.confidence * 100)}%`}</text></g>; })}
+            </svg> : null}
+            <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">{detections.slice(0, 4).map((detection, index) => <span className="rounded-full bg-[#17211f]/85 px-3 py-1.5 font-mono text-[10px] text-white shadow-lg backdrop-blur" key={`${detection.label}-legend-${index}`}><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />{detection.label.replaceAll("-", " ")}</span>)}</div>
+            <span className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.13em] text-[var(--foreground)] shadow-lg"><span className="h-2 w-2 rounded-full bg-[#58a36d]" />Live</span>
+          </div> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
         </div>
       </div>
 
