@@ -16,6 +16,13 @@ export function InferenceConsole() {
   const [isPending, startTransition] = useTransition();
   const [inputMode, setInputMode] = useState<"upload" | "camera">("upload");
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMirrored, setIsMirrored] = useState(true);
+  const [showBoxes, setShowBoxes] = useState(true);
+  const [showLegend, setShowLegend] = useState(true);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(50);
+  const [detectionInterval, setDetectionInterval] = useState(900);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
   const previewRequestRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -73,13 +80,13 @@ export function InferenceConsole() {
         if (!cancelled) setError("Live detection paused. Check the API connection.");
       } finally {
         liveRequestRef.current = false;
-        if (!cancelled) timer = setTimeout(detectFrame, 900);
+        if (!cancelled) timer = setTimeout(detectFrame, detectionInterval);
       }
     }
 
     void detectFrame();
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [isCameraActive, selectedPipeline]);
+  }, [detectionInterval, isCameraActive, selectedPipeline]);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -91,7 +98,7 @@ export function InferenceConsole() {
   async function startCamera() {
     setError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFacing }, audio: false });
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       setIsCameraActive(true);
@@ -104,6 +111,21 @@ export function InferenceConsole() {
     if (mode === "upload") stopCamera();
     setInputMode(mode);
     setError(null);
+  }
+
+  async function changeCameraFacing(facing: "user" | "environment") {
+    const shouldRestart = isCameraActive;
+    stopCamera();
+    setCameraFacing(facing);
+    if (shouldRestart) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+        streamRef.current = stream;
+        setIsCameraActive(true);
+      } catch {
+        setError("Unable to switch camera. Check device availability.");
+      }
+    }
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -131,9 +153,10 @@ export function InferenceConsole() {
 
   const detections = result?.detections ?? [];
   const segmentations = result?.segmentations ?? [];
+  const visibleDetections = detections.filter((detection) => detection.confidence * 100 >= confidenceThreshold);
 
   return (
-    <section className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
+    <section className="relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
       <form className="flex min-h-0 flex-col bg-[#dbe5d8] p-4 md:p-5 max-lg:grid max-lg:grid-cols-[1fr_1.4fr_auto] max-lg:items-center max-lg:gap-4" onSubmit={handleSubmit}>
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Workspace</p>
@@ -159,9 +182,9 @@ export function InferenceConsole() {
           {inputMode === "upload" ? <label className="group col-span-full flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] bg-white/55 px-4 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] max-lg:min-h-11 max-lg:flex-row max-lg:gap-2">
               <span className="text-xl text-[var(--accent)]">＋</span><span className="text-sm font-semibold">Choose image</span><span className="mt-1 max-w-full truncate text-[11px] text-[var(--muted)]">{file?.name ?? "PNG, JPG or WEBP"}</span>
               <input accept="image/png,image/jpeg,image/webp" className="sr-only" type="file" onChange={handleFileChange} />
-            </label> : <button className={`col-span-full flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
-              <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24"><path d="M15 10.5 19.5 8v8L15 13.5m-9.5-7h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
-              {isCameraActive ? "Stop live camera" : "Start live camera"}
+            </label> : <button className={`col-span-full flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 text-xs font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
+              <svg aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24"><path d="M15 10.5 19.5 8v8L15 13.5m-9.5-7h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+              {isCameraActive ? "Stop camera" : "Start camera"}
             </button>}
         </div>
         <div className="mt-auto space-y-3 pt-5 max-lg:mt-0 max-lg:pt-0">
@@ -178,11 +201,11 @@ export function InferenceConsole() {
         </div>
         <div className="vision-preview relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-[#e7e9e1] p-2">
           {inputMode === "camera" && isCameraActive ? <div className="relative h-full overflow-hidden rounded-[1.25rem] bg-[#17211f]">
-            <video ref={videoRef} autoPlay className="h-full w-full scale-x-[-1] object-contain" muted playsInline />
-            {result ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid meet" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
-              {result.detections.map((detection, index) => { const mirroredX = result.image.width - detection.box.x - detection.box.width; return <g key={`${detection.label}-${index}`}><rect fill="none" height={detection.box.height} rx="8" stroke="#ff7a45" strokeWidth="3" width={detection.box.width} x={mirroredX} y={detection.box.y} /><rect fill="#17211f" height="28" rx="8" width="118" x={mirroredX} y={Math.max(4, detection.box.y - 32)} /><text fill="white" fontFamily="monospace" fontSize="12" fontWeight="600" x={mirroredX + 9} y={Math.max(22, detection.box.y - 13)}>{`${detection.label.slice(0, 11)} ${Math.round(detection.confidence * 100)}%`}</text></g>; })}
+            <video ref={videoRef} autoPlay className={`h-full w-full object-contain ${isMirrored ? "scale-x-[-1]" : ""}`} muted playsInline />
+            {result && showBoxes ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid meet" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
+              {visibleDetections.map((detection, index) => { const displayX = isMirrored ? result.image.width - detection.box.x - detection.box.width : detection.box.x; return <g key={`${detection.label}-${index}`}><rect fill="none" height={detection.box.height} rx="8" stroke="#ff7a45" strokeWidth="3" width={detection.box.width} x={displayX} y={detection.box.y} /><rect fill="#17211f" height="28" rx="8" width="118" x={displayX} y={Math.max(4, detection.box.y - 32)} /><text fill="white" fontFamily="monospace" fontSize="12" fontWeight="600" x={displayX + 9} y={Math.max(22, detection.box.y - 13)}>{`${detection.label.slice(0, 11)} ${Math.round(detection.confidence * 100)}%`}</text></g>; })}
             </svg> : null}
-            <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">{detections.slice(0, 4).map((detection, index) => <span className="rounded-full bg-[#17211f]/85 px-3 py-1.5 font-mono text-[10px] text-white shadow-lg backdrop-blur" key={`${detection.label}-legend-${index}`}><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />{detection.label.replaceAll("-", " ")}</span>)}</div>
+            {showLegend ? <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">{visibleDetections.slice(0, 4).map((detection, index) => <span className="rounded-full bg-[#17211f]/85 px-3 py-1.5 font-mono text-[10px] text-white shadow-lg backdrop-blur" key={`${detection.label}-legend-${index}`}><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />{detection.label.replaceAll("-", " ")}</span>)}</div> : null}
             <span className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.13em] text-[var(--foreground)] shadow-lg"><span className="h-2 w-2 rounded-full bg-[#58a36d]" />Live</span>
           </div> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
         </div>
@@ -201,6 +224,21 @@ export function InferenceConsole() {
           <div className="mt-auto rounded-2xl bg-[var(--violet)] p-3 text-[var(--foreground)]"><p className="truncate text-xs font-semibold">{result.pipeline.name}</p><p className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] opacity-60">{result.image.width} × {result.image.height}</p></div>
         </> : <div className="flex flex-1 flex-col justify-center"><span className="text-5xl font-light text-white/18">↗</span><p className="mt-5 text-xl font-medium tracking-[-0.04em]">Results land here.</p><p className="mt-2 text-sm leading-6 text-white/45">Add an image and run the pipeline.</p></div>}
       </aside>
+
+      <button aria-expanded={isSettingsOpen} aria-label={isSettingsOpen ? "Close vision settings" : "Open vision settings"} className="absolute bottom-5 right-5 z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[var(--foreground)] shadow-[0_12px_36px_rgba(18,31,28,0.24)] transition hover:rotate-12 hover:bg-[var(--lime)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" onClick={() => setIsSettingsOpen((open) => !open)} type="button">
+        <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" strokeWidth="1.8" /><path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 0 1-2.8-2.8L3 15a2 2 0 0 0-1.4-3.4h-.1a2 2 0 0 1 0-4h.1A2 2 0 0 0 3 4.2l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a2 2 0 0 0 3.4-1.4V0m5.6 0v.2a2 2 0 0 0 3.4 1.4l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a2 2 0 0 0 1.4 3.4h.1a2 2 0 0 1 0 4h-.1A2 2 0 0 0 19.4 15Z" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" /></svg>
+      </button>
+      {isSettingsOpen ? <div className="absolute bottom-20 right-5 z-20 w-[min(310px,calc(100%-2.5rem))] rounded-[1.75rem] bg-white p-5 shadow-[0_24px_70px_rgba(18,31,28,0.28)]">
+        <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Vision settings</p><p className="text-[11px] text-[var(--muted)]">Tune the live workspace</p></div><button aria-label="Close settings" className="h-10 w-10 cursor-pointer rounded-full bg-[#eef1eb] text-lg" onClick={() => setIsSettingsOpen(false)} type="button">×</button></div>
+        <div className="mt-5 space-y-4 text-xs">
+          <label className="flex items-center justify-between gap-4"><span>Mirror camera</span><input checked={isMirrored} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setIsMirrored(event.target.checked)} type="checkbox" /></label>
+          <label className="flex items-center justify-between gap-4"><span>Show boxes</span><input checked={showBoxes} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setShowBoxes(event.target.checked)} type="checkbox" /></label>
+          <label className="flex items-center justify-between gap-4"><span>Show legend</span><input checked={showLegend} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setShowLegend(event.target.checked)} type="checkbox" /></label>
+          <label className="block"><span className="flex justify-between"><span>Confidence</span><span className="font-mono text-[var(--muted)]">{confidenceThreshold}%</span></span><input className="mt-2 w-full accent-[var(--accent)]" max="90" min="10" step="5" type="range" value={confidenceThreshold} onChange={(event) => setConfidenceThreshold(Number(event.target.value))} /></label>
+          <label className="block"><span className="mb-2 block">Detection speed</span><select className="h-10 w-full cursor-pointer appearance-none rounded-xl bg-[#eef1eb] px-3" value={detectionInterval} onChange={(event) => setDetectionInterval(Number(event.target.value))}><option value="500">Fast</option><option value="900">Balanced</option><option value="1600">Battery saver</option></select></label>
+          <div><span className="mb-2 block">Camera</span><div className="grid grid-cols-2 gap-2"><button className={`h-10 cursor-pointer rounded-xl ${cameraFacing === "user" ? "bg-[var(--foreground)] text-white" : "bg-[#eef1eb]"}`} onClick={() => void changeCameraFacing("user")} type="button">Front</button><button className={`h-10 cursor-pointer rounded-xl ${cameraFacing === "environment" ? "bg-[var(--foreground)] text-white" : "bg-[#eef1eb]"}`} onClick={() => void changeCameraFacing("environment")} type="button">Back</button></div></div>
+        </div>
+      </div> : null}
     </section>
   );
 }
