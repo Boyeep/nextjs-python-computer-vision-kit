@@ -18,6 +18,7 @@ export function InferenceConsole() {
   const [inputMode, setInputMode] = useState<"upload" | "camera">("upload");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPipelineOpen, setIsPipelineOpen] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
   const [showBoxes, setShowBoxes] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
@@ -167,6 +168,7 @@ export function InferenceConsole() {
   const detections = result?.detections ?? [];
   const segmentations = result?.segmentations ?? [];
   const visibleDetections = detections.filter((detection) => detection.confidence * 100 >= confidenceThreshold);
+  const currentPipeline = pipelines.find((pipeline) => pipeline.id === selectedPipeline) ?? pipelines[0];
 
   return (
     <section className="relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
@@ -180,10 +182,13 @@ export function InferenceConsole() {
           <label className="block">
             <span className="mb-2 block text-xs font-medium text-[var(--muted)]">Pipeline</span>
             <span className="relative block">
-              <select className="h-11 w-full cursor-pointer appearance-none rounded-2xl bg-white/70 py-0 pl-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]" value={selectedPipeline} onChange={(event) => setSelectedPipeline(event.target.value)}>
-                {pipelines.map((pipeline) => <option key={pipeline.id} value={pipeline.id}>{pipeline.name}</option>)}
-              </select>
-              <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground)]" strokeWidth={2} />
+              <button aria-controls="pipeline-options" aria-expanded={isPipelineOpen} aria-haspopup="listbox" className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl bg-white/70 px-3 text-left text-sm outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:rounded-2xl" onClick={() => setIsPipelineOpen((open) => !open)} type="button">
+                <span className="truncate">{currentPipeline?.name ?? "Choose pipeline"}</span>
+                <ChevronDown aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform ${isPipelineOpen ? "rotate-180" : ""}`} strokeWidth={2} />
+              </button>
+              {isPipelineOpen ? <span className="reveal absolute inset-x-0 top-[calc(100%+6px)] z-40 overflow-hidden rounded-xl bg-white p-1 shadow-[0_14px_36px_rgba(24,38,34,0.18)]" id="pipeline-options" role="listbox">
+                {pipelines.map((pipeline) => <button aria-selected={pipeline.id === selectedPipeline} className={`flex min-h-10 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm transition ${pipeline.id === selectedPipeline ? "bg-[var(--lime)] font-semibold" : "hover:bg-[#eef1eb]"}`} key={pipeline.id} onClick={() => { setSelectedPipeline(pipeline.id); setIsPipelineOpen(false); }} role="option" type="button">{pipeline.name}</button>)}
+              </span> : null}
             </span>
           </label>
           <div>
@@ -213,15 +218,15 @@ export function InferenceConsole() {
           <div><p className="text-sm font-semibold">Preview</p><p className="text-[11px] text-[var(--muted)]">Detection overlay</p></div>
           {result ? <span className="rounded-full bg-[var(--lime)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em]">Complete</span> : null}
         </div>
-        <div className="vision-preview relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-[#e7e9e1] p-2">
-          {inputMode === "camera" && isCameraActive ? <div className="relative h-full overflow-hidden rounded-[1.25rem] bg-[#17211f]">
-            <video ref={videoRef} autoPlay className={`h-full w-full object-contain ${isMirrored ? "scale-x-[-1]" : ""}`} muted playsInline />
-            {result && showBoxes ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid meet" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
+        <div className="vision-preview relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-[#e7e9e1]">
+          {inputMode === "camera" && isCameraActive ? <div className="relative h-full overflow-hidden bg-[#17211f]">
+            <video ref={videoRef} autoPlay className={`h-full w-full object-cover ${isMirrored ? "scale-x-[-1]" : ""}`} muted playsInline />
+            {result && showBoxes ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
               {visibleDetections.map((detection, index) => { const displayX = isMirrored ? result.image.width - detection.box.x - detection.box.width : detection.box.x; return <g key={`${detection.label}-${index}`}><rect fill="none" height={detection.box.height} rx="8" stroke="#ff7a45" strokeWidth="3" width={detection.box.width} x={displayX} y={detection.box.y} /><rect fill="#17211f" height="28" rx="8" width="118" x={displayX} y={Math.max(4, detection.box.y - 32)} /><text fill="white" fontFamily="monospace" fontSize="12" fontWeight="600" x={displayX + 9} y={Math.max(22, detection.box.y - 13)}>{`${detection.label.slice(0, 11)} ${Math.round(detection.confidence * 100)}%`}</text></g>; })}
             </svg> : null}
             {showLegend ? <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">{visibleDetections.slice(0, 4).map((detection, index) => <span className="rounded-full bg-[#17211f]/85 px-3 py-1.5 font-mono text-[10px] text-white shadow-lg backdrop-blur" key={`${detection.label}-legend-${index}`}><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />{detection.label.replaceAll("-", " ")}</span>)}</div> : null}
             <span className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.13em] text-[var(--foreground)] shadow-lg"><span className="h-2 w-2 rounded-full bg-[#58a36d]" />Live</span>
-          </div> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
+          </div> : inputMode === "camera" ? <div className="flex h-full flex-col items-center justify-center bg-[#dde3da] text-center"><Video aria-hidden="true" className="h-9 w-9 text-[var(--muted)]" strokeWidth={1.4} /><p className="mt-3 text-sm font-semibold">Camera is ready</p><p className="mt-1 text-xs text-[var(--muted)]">Start camera from the control panel.</p></div> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
         </div>
       </div>
 
