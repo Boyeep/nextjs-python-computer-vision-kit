@@ -1,4 +1,4 @@
-# Soon
+# Short Roadmap
 
 Short public roadmap for the next upgrades to this computer-vision kit.
 

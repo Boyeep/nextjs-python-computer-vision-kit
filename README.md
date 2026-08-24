@@ -8,9 +8,7 @@ It gives you a polished upload-to-inference UI, a typed OpenAPI contract, CPU-fr
   <a href="#quick-start">Quick start</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#what-you-get">What you get</a> ·
-  <a href="./CONTRIBUTING.md">Contributing</a> ·
-  <a href="./SECURITY.md">Security</a> ·
-  <a href="./soon.md">Roadmap</a>
+  <a href="./docs/security.md">Security</a>
 </p>
 
 ## Screenshots
@@ -96,7 +94,6 @@ npm run dev:down
 npm run api:types
 npm run check:contract
 npm run check:images
-npm run report:licenses
 npm run check:secrets
 npm run check:workflows
 npm run check
@@ -115,15 +112,11 @@ The root check runs:
 
 `check:images` is separate and intended for environments where a Docker daemon is available.
 
-`report:licenses` generates local npm and Python license inventories in `reports/licenses/`.
-
 `check:secrets` scans tracked git content with a pinned `gitleaks` version via Go.
 
 `check:workflows` lints `.github/workflows/` with a pinned `actionlint` version via Go.
 
 CodeQL code scanning also runs on GitHub for `javascript-typescript`, `python`, and workflow files.
-
-A separate GitHub workflow generates license-report artifacts for the root workspace, frontend workspace, and backend Python environment.
 
 An SBOM workflow also publishes SPDX artifacts for the repository source plus the frontend and backend runner images.
 
@@ -154,13 +147,9 @@ An SBOM workflow also publishes SPDX artifacts for the repository source plus th
 4. Introduce a real model adapter layer.
 5. Split training and experimentation into a separate workspace later.
 
-The short public roadmap lives in [soon.md](./soon.md).
-A sign-language adaptation roadmap for this template lives in [roadmap.md](./roadmap.md).
+The project documentation lives in [`docs/`](./docs/).
 
 ## Repository Standards
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-- [LICENSE](./LICENSE)
-- [SECURITY.md](./SECURITY.md)
-- [template-playbook.md](./template-playbook.md)
+- [Security](./docs/security.md)
+- [Tooling](./docs/tooling.md)

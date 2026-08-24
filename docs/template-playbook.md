@@ -1,6 +1,6 @@
 # Template Playbook
 
-Reusable playbook for building a serious starter repo, even when the product domain changes.
+Reusable playbook for building a serious starter repo, even when the product domain changes. Adapt governance to the repository's ownership model.
 
 Use this when you want to create a new template and need the internal structure, not the app-specific features.
 
