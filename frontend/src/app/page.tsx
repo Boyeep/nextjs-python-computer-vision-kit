@@ -1,82 +1,39 @@
-import { InferenceConsole } from "@/components/inference-console";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-dvh">
-      <header className="border-b border-[var(--line)]">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 md:px-10">
-          <div className="flex items-baseline gap-3">
-            <span className="font-semibold tracking-[-0.04em]">Vision/01</span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
-              Next.js · FastAPI · OpenCV
-            </span>
+    <main className="relative h-dvh overflow-hidden bg-[var(--background)] px-5 py-5 md:px-10 md:py-8">
+      <div className="pointer-events-none absolute -right-[12vw] -top-[24vw] h-[62vw] w-[62vw] rounded-full bg-[var(--sky)] blur-[2px]" />
+      <div className="pointer-events-none absolute -bottom-[30vw] -left-[14vw] h-[58vw] w-[58vw] rounded-full bg-[var(--lime)] opacity-80 blur-[2px]" />
+      <div className="relative z-10 mx-auto flex h-full max-w-[1500px] flex-col">
+        <header className="flex h-14 shrink-0 items-center justify-between">
+          <Link className="text-lg font-semibold tracking-[-0.05em]" href="/">Vision<span className="text-[var(--accent)]">/01</span></Link>
+          <nav className="flex items-center gap-2 text-sm font-medium">
+            <span className="hidden px-4 text-[var(--muted)] sm:inline">Home</span>
+            <Link className="rounded-full bg-white/65 px-5 py-2.5 shadow-[0_8px_30px_rgba(28,45,42,0.08)] backdrop-blur transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" href="/vision">Open workspace</Link>
+          </nav>
+        </header>
+        <section className="grid min-h-0 flex-1 items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="fade-up max-w-4xl self-center pb-8">
+            <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--accent-strong)]">Computer vision starter</p>
+            <h1 className="text-[clamp(3.8rem,9.5vw,9rem)] font-medium leading-[0.8] tracking-[-0.085em]">Look closer.<span className="block text-[var(--accent)]">Build faster.</span></h1>
+            <p className="mt-8 max-w-xl text-base leading-7 text-[var(--muted)] md:text-lg">A clean Next.js and FastAPI foundation for turning images into useful signals.</p>
+            <div className="mt-8 flex items-center gap-4">
+              <Link className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(23,33,31,0.2)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" href="/vision">Analyze an image</Link>
+              <span className="hidden font-mono text-xs text-[var(--muted)] sm:inline">PNG · JPG · WEBP</span>
+            </div>
           </div>
-          <a
-            className="text-sm text-[var(--muted)] transition-colors duration-200 hover:text-[var(--foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
-            href="#console"
-          >
-            Open console ↓
-          </a>
-        </div>
-      </header>
-
-      <section className="mx-auto grid max-w-[1440px] border-b border-[var(--line)] lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-        <div className="px-5 py-16 md:px-10 md:py-24 lg:border-r lg:border-[var(--line)] lg:py-32">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--accent-strong)]">
-            Detection workspace / CPU-first
-          </p>
-          <h1 className="mt-8 max-w-[900px] text-[clamp(3.2rem,8vw,7.6rem)] font-medium leading-[0.84] tracking-[-0.075em]">
-            See what the model sees.
-          </h1>
-          <p className="mt-10 max-w-2xl text-lg leading-8 text-[var(--muted)] md:text-xl">
-            A focused image-analysis surface. Upload a frame, run the detection
-            contract, and inspect every box without ceremony.
-          </p>
-        </div>
-
-        <aside className="flex flex-col justify-between bg-[var(--wash)] px-5 py-10 md:px-10 lg:py-14">
-          <p className="max-w-sm text-sm leading-7 text-[var(--muted)]">
-            The sample pipeline stays deliberately small. Replace the vision layer;
-            keep the interface and typed response boundary.
-          </p>
-          <dl className="mt-16 divide-y divide-[var(--line)] border-y border-[var(--line)] font-mono text-xs uppercase tracking-[0.13em]">
-            <div className="flex justify-between py-4">
-              <dt className="text-[var(--muted)]">Input</dt>
-              <dd>PNG / JPEG / WEBP</dd>
+          <div aria-hidden="true" className="relative hidden h-[min(66vh,650px)] lg:block">
+            <div className="absolute inset-[8%_3%_3%_12%] rotate-3 rounded-[4rem] bg-[var(--violet)] shadow-[0_40px_100px_rgba(76,62,120,0.18)]" />
+            <div className="absolute inset-[16%_12%_12%_3%] -rotate-3 rounded-[4rem] bg-[var(--peach)] shadow-[0_32px_90px_rgba(153,87,62,0.14)]" />
+            <div className="absolute inset-[25%_2%_2%_22%] overflow-hidden rounded-[4rem] bg-[var(--foreground)] shadow-[0_34px_90px_rgba(23,33,31,0.2)]">
+              <div className="absolute left-[15%] top-[18%] h-[46%] w-[55%] rounded-[2.2rem] bg-[#dce8de]" />
+              <div className="absolute left-[38%] top-[31%] h-[28%] w-[32%] rounded-[1.4rem] ring-2 ring-[var(--accent)] ring-offset-4 ring-offset-[var(--foreground)]" />
+              <span className="absolute bottom-[13%] left-[12%] rounded-full bg-white/10 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/65">Object found · 94%</span>
             </div>
-            <div className="flex justify-between py-4">
-              <dt className="text-[var(--muted)]">Runtime</dt>
-              <dd>OpenCV CPU</dd>
-            </div>
-            <div className="flex justify-between py-4">
-              <dt className="text-[var(--muted)]">Output</dt>
-              <dd>Typed JSON</dd>
-            </div>
-          </dl>
-        </aside>
-      </section>
-
-      <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24" id="console">
-        <div className="mb-10 flex items-end justify-between gap-6 border-b border-[var(--line)] pb-5">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
-              Workspace 001
-            </p>
-            <h2 className="mt-2 text-3xl font-medium tracking-[-0.045em] md:text-5xl">
-              Detection console
-            </h2>
           </div>
-          <span className="hidden h-3 w-3 rounded-full bg-[var(--accent)] md:block" aria-hidden />
-        </div>
-        <InferenceConsole />
+        </section>
       </div>
-
-      <footer className="border-t border-[var(--line)] px-5 py-6 md:px-10">
-        <div className="mx-auto flex max-w-[1360px] justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
-          <span>Vision/01</span>
-          <span>Built for replacement, not decoration</span>
-        </div>
-      </footer>
     </main>
   );
 }

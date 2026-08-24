@@ -8,6 +8,10 @@
   --wash: #e6e9df;
   --accent: #ee6945;
   --accent-strong: #a83e25;
+  --sky: #c9e3e7;
+  --lime: #dbe7b6;
+  --violet: #c9c2e8;
+  --peach: #f2c4ae;
 }
 
 @theme inline {
@@ -23,6 +27,12 @@ body {
   font-family: var(--font-space-grotesk), sans-serif;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 ::selection {
   background: var(--accent);
   color: white;
@@ -30,6 +40,20 @@ body {
 
 .fade-up {
   animation: fade-up 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vision-preview > div {
+  margin-top: 0;
+  height: 100%;
+  border: 0;
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.vision-preview > div > div:first-child {
+  min-height: 0;
+  flex: 1;
 }
 
 button,
