@@ -1,264 +1,297 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-
+import { ChevronDown, ScanLine, Settings, Upload, Video, X } from "lucide-react";
 import { AnalysisPreview } from "@/components/analysis-preview";
-import { AnalysisResults } from "@/components/analysis-results";
-import {
-  analyzeImage,
-  demoPipelines,
-  fetchPipelineCatalog,
-  getPreferredPipelineId,
-  getApiBaseUrl,
-  type AnalyzeResponse,
-  type PipelineSummary,
-} from "@/lib/api";
+import { analyzeImage, demoPipelines, fetchPipelineCatalog, getPreferredPipelineId, type AnalyzeResponse, type PipelineSummary } from "@/lib/api";
 
 export function InferenceConsole() {
   const [pipelines, setPipelines] = useState<PipelineSummary[]>(demoPipelines);
-  const [selectedPipeline, setSelectedPipeline] = useState<string>(() =>
-    getPreferredPipelineId(demoPipelines),
-  );
+  const [selectedPipeline, setSelectedPipeline] = useState(() => getPreferredPipelineId(demoPipelines));
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewDimensions, setPreviewDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
+  const [previewDimensions, setPreviewDimensions] = useState<{ width: number; height: number } | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [connectionMode, setConnectionMode] = useState<"checking" | "live" | "fallback">(
-    "checking",
-  );
+  const [connectionMode, setConnectionMode] = useState<"checking" | "live" | "fallback">("checking");
   const [isPending, startTransition] = useTransition();
+  const [inputMode, setInputMode] = useState<"upload" | "camera">("upload");
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPipelineOpen, setIsPipelineOpen] = useState(false);
+  const [isMirrored, setIsMirrored] = useState(true);
+  const [showBoxes, setShowBoxes] = useState(true);
+  const [showLegend, setShowLegend] = useState(true);
+  const [confidenceThreshold, setConfidenceThreshold] = useState(50);
+  const [detectionInterval, setDetectionInterval] = useState(900);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
   const previewRequestRef = useRef(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const liveRequestRef = useRef(false);
+  const cameraRequestRef = useRef(0);
+  const analysisRequestRef = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
-
     void fetchPipelineCatalog(controller.signal).then((payload) => {
       setPipelines(payload.pipelines);
       setConnectionMode(payload.source);
-      setSelectedPipeline((current) =>
-        getPreferredPipelineId(payload.pipelines, current),
-      );
+      setSelectedPipeline((current) => getPreferredPipelineId(payload.pipelines, current));
     });
-
     return () => controller.abort();
   }, []);
 
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+
+  useEffect(() => () => {
+    cameraRequestRef.current += 1;
+    analysisRequestRef.current += 1;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
   useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isCameraActive]);
+
+  useEffect(() => {
+    if (!isCameraActive) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const sourceGeneration = analysisRequestRef.current;
+
+    async function detectFrame() {
+      const video = videoRef.current;
+      if (!video || !video.videoWidth || !video.videoHeight || liveRequestRef.current) {
+        if (!cancelled) timer = setTimeout(detectFrame, 500);
+        return;
       }
-    };
-  }, [previewUrl]);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      liveRequestRef.current = true;
+
+      try {
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+        if (!blob || cancelled) return;
+        const cameraResult = await analyzeImage({ file: new File([blob], "live-camera.jpg", { type: "image/jpeg" }), pipelineId: selectedPipeline });
+        if (!cancelled && sourceGeneration === analysisRequestRef.current) {
+          setResult(cameraResult);
+          setError(null);
+        }
+      } catch (cause) {
+        if (!cancelled) {
+          setError(cause instanceof Error ? cause.message : "Live detection stopped.");
+          stopCamera();
+        }
+      } finally {
+        liveRequestRef.current = false;
+        if (!cancelled) timer = setTimeout(detectFrame, detectionInterval);
+      }
+    }
+
+    void detectFrame();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [detectionInterval, isCameraActive, selectedPipeline]);
+
+  function stopCamera() {
+    cameraRequestRef.current += 1;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setIsCameraActive(false);
+  }
+
+  async function startCamera() {
+    const requestGeneration = cameraRequestRef.current + 1;
+    cameraRequestRef.current = requestGeneration;
+
+    if (connectionMode === "fallback") {
+      setConnectionMode("checking");
+      const payload = await fetchPipelineCatalog();
+      if (requestGeneration !== cameraRequestRef.current) return;
+      setPipelines(payload.pipelines);
+      setConnectionMode(payload.source);
+      setSelectedPipeline((current) => getPreferredPipelineId(payload.pipelines, current));
+      if (payload.source === "fallback") {
+        setError("Vision API is offline. Run npm run dev from the repository root, then retry.");
+        return;
+      }
+    }
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFacing }, audio: false });
+      if (requestGeneration !== cameraRequestRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setIsCameraActive(true);
+    } catch {
+      if (requestGeneration === cameraRequestRef.current) {
+        setError("Camera access failed. Check your browser permission.");
+      }
+    }
+  }
+
+  function changeInputMode(mode: "upload" | "camera") {
+    if (mode === "upload") stopCamera();
+    analysisRequestRef.current += 1;
+    setResult(null);
+    setInputMode(mode);
+    setError(null);
+  }
+
+  async function changeCameraFacing(facing: "user" | "environment") {
+    const shouldRestart = isCameraActive;
+    stopCamera();
+    setCameraFacing(facing);
+    if (shouldRestart) {
+      const requestGeneration = cameraRequestRef.current + 1;
+      cameraRequestRef.current = requestGeneration;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+        if (requestGeneration !== cameraRequestRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        setIsCameraActive(true);
+      } catch {
+        if (requestGeneration === cameraRequestRef.current) {
+          setError("Unable to switch camera. Check device availability.");
+        }
+      }
+    }
+  }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const nextFile = event.target.files?.[0] ?? null;
-
-    setFile(nextFile);
-    setResult(null);
-    setError(null);
-    setPreviewDimensions(null);
-
+    setFile(nextFile); setResult(null); setError(null); setPreviewDimensions(null);
+    analysisRequestRef.current += 1;
+    previewRequestRef.current += 1;
     if (!nextFile) {
-      previewRequestRef.current += 1;
-      setPreviewUrl((current) => {
-        if (current) {
-          URL.revokeObjectURL(current);
-        }
-
-        return null;
-      });
+      setPreviewUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
       return;
     }
-
+    const nextRequestId = previewRequestRef.current;
     const nextPreviewUrl = URL.createObjectURL(nextFile);
-    const nextRequestId = previewRequestRef.current + 1;
-    previewRequestRef.current = nextRequestId;
-
-    setPreviewUrl((current) => {
-      if (current) {
-        URL.revokeObjectURL(current);
-      }
-
-      return nextPreviewUrl;
-    });
-
+    setPreviewUrl((current) => { if (current) URL.revokeObjectURL(current); return nextPreviewUrl; });
     const image = new window.Image();
-    image.onload = () => {
-      if (previewRequestRef.current === nextRequestId) {
-        setPreviewDimensions({
-          width: image.naturalWidth,
-          height: image.naturalHeight,
-        });
-      }
-    };
-    image.onerror = () => {
-      if (previewRequestRef.current === nextRequestId) {
-        setPreviewDimensions(null);
-      }
-    };
+    image.onload = () => { if (previewRequestRef.current === nextRequestId) setPreviewDimensions({ width: image.naturalWidth, height: image.naturalHeight }); };
     image.src = nextPreviewUrl;
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!file) {
-      setError("Choose an image before running the pipeline.");
-      return;
-    }
-
+    if (!file) { setError("Choose an image first."); return; }
     setError(null);
-
-    startTransition(() => {
-      void (async () => {
-        try {
-          const nextResult = await analyzeImage({
-            file,
-            pipelineId: selectedPipeline,
-          });
-
-          setResult(nextResult);
-        } catch (submissionError) {
-          setResult(null);
-          setError(
-            submissionError instanceof Error
-              ? submissionError.message
-              : "Analysis failed.",
-          );
-        }
-      })();
-    });
+    const requestGeneration = analysisRequestRef.current + 1;
+    analysisRequestRef.current = requestGeneration;
+    startTransition(() => { void analyzeImage({ file, pipelineId: selectedPipeline }).then((nextResult) => { if (requestGeneration === analysisRequestRef.current) setResult(nextResult); }).catch((cause) => { if (requestGeneration === analysisRequestRef.current) { setResult(null); setError(cause instanceof Error ? cause.message : "Analysis failed."); } }); });
   }
 
-  const currentPipeline =
-    pipelines.find((item) => item.id === selectedPipeline) ?? pipelines[0];
+  const detections = result?.detections ?? [];
+  const segmentations = result?.segmentations ?? [];
+  const visibleDetections = detections.filter((detection) => detection.confidence * 100 >= confidenceThreshold);
+  const currentPipeline = pipelines.find((pipeline) => pipeline.id === selectedPipeline) ?? pipelines[0];
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="fade-up rounded-[32px] border border-black/10 bg-white/78 p-6 shadow-[0_32px_90px_rgba(10,20,25,0.12)] backdrop-blur-xl">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--foreground)]">
-            Vision Console
-          </span>
-          <span className="rounded-full border border-black/10 px-3 py-1 font-mono text-xs text-black/65">
-            {connectionMode === "live"
-              ? "live backend"
-              : connectionMode === "fallback"
-                ? "demo catalog"
-                : "checking backend"}
-          </span>
+    <section className="relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[2rem] bg-[#f7f8f4] shadow-[0_24px_80px_rgba(42,58,54,0.12)] lg:grid-cols-[220px_minmax(0,1fr)_250px] lg:grid-rows-1 xl:grid-cols-[250px_minmax(0,1fr)_280px]">
+      <form className="reveal flex min-h-0 flex-col bg-[#dbe5d8] p-3 [--reveal-delay:40ms] sm:p-4 lg:p-5" onSubmit={handleSubmit}>
+        <div className="flex items-center justify-between lg:block">
+          <p className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] lg:block">Workspace</p>
+          <h1 className="text-lg font-semibold tracking-[-0.05em] lg:mt-2 lg:text-2xl">Image lab</h1>
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)] lg:hidden">{connectionMode === "live" ? "API live" : connectionMode === "fallback" ? "API offline" : "Connecting"}</span>
         </div>
-
-        <div className="mt-6 space-y-3">
-          <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            Upload once, get detection boxes, and inspect the contract.
-          </h2>
-          <p className="max-w-xl text-sm leading-7 text-black/70">
-            This is the main happy path for the template: send one image to the FastAPI
-            service, get object-style detections back, and render a response shape you
-            can keep when you later swap in YOLO, ONNX Runtime, or a hosted model API.
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-black/75">Pipeline</span>
-            <select
-              className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-black/30"
-              value={selectedPipeline}
-              onChange={(event) => setSelectedPipeline(event.target.value)}
-            >
-              {pipelines.map((pipeline) => (
-                <option key={pipeline.id} value={pipeline.id}>
-                  {pipeline.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="rounded-[24px] border border-dashed border-black/15 bg-[#faf5ed] p-4">
-            <label className="flex cursor-pointer flex-col gap-2">
-              <span className="text-sm font-medium text-black/75">Upload image</span>
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="text-sm text-black/70 file:mr-4 file:rounded-full file:border-0 file:bg-[var(--foreground)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
-                type="file"
-                onChange={handleFileChange}
-              />
-            </label>
-
-            <AnalysisPreview
-              fileName={file?.name}
-              previewDimensions={previewDimensions}
-              previewUrl={previewUrl}
-              result={result}
-            />
-          </div>
-
-          <div className="rounded-[24px] border border-black/10 bg-[#13262e] p-4 text-white">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/55">
-                  Detection-First Contract
-                </p>
-                <p className="mt-2 text-sm text-white/85">{getApiBaseUrl()}/analyze</p>
-              </div>
-              <button
-                className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-[#1d1007] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isPending || !selectedPipeline}
-                type="submit"
-              >
-                {isPending ? "Running..." : "Analyze Image"}
+        <div className="mt-3 grid grid-cols-2 gap-2.5 lg:mt-6 lg:block lg:space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-xs font-medium text-[var(--muted)]">Pipeline</span>
+            <span className="relative block">
+              <button aria-controls="pipeline-options" aria-expanded={isPipelineOpen} aria-haspopup="listbox" className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl bg-white/70 px-3 text-left text-sm outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:rounded-2xl" onClick={() => setIsPipelineOpen((open) => !open)} type="button">
+                <span className="truncate">{currentPipeline?.name ?? "Choose pipeline"}</span>
+                <ChevronDown aria-hidden="true" className={`h-4 w-4 shrink-0 transition-transform ${isPipelineOpen ? "rotate-180" : ""}`} strokeWidth={2} />
               </button>
+              {isPipelineOpen ? <span className="reveal absolute inset-x-0 top-[calc(100%+6px)] z-40 overflow-hidden rounded-xl bg-white p-1 shadow-[0_14px_36px_rgba(24,38,34,0.18)]" id="pipeline-options" role="listbox">
+                {pipelines.map((pipeline) => <button aria-selected={pipeline.id === selectedPipeline} className={`flex min-h-10 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm transition ${pipeline.id === selectedPipeline ? "bg-[var(--lime)] font-semibold" : "hover:bg-[#eef1eb]"}`} key={pipeline.id} onClick={() => { setSelectedPipeline(pipeline.id); setIsPipelineOpen(false); }} role="option" type="button">{pipeline.name}</button>)}
+              </span> : null}
+            </span>
+          </label>
+          <div>
+            <span className="mb-2 block text-xs font-medium text-[var(--muted)]">Input</span>
+            <div className="grid h-11 grid-cols-2 rounded-2xl bg-white/45 p-1 text-xs font-semibold">
+              <button className={`cursor-pointer rounded-xl transition ${inputMode === "upload" ? "bg-white shadow-sm" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`} onClick={() => changeInputMode("upload")} type="button">Upload</button>
+              <button className={`cursor-pointer rounded-xl transition ${inputMode === "camera" ? "bg-white shadow-sm" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`} onClick={() => changeInputMode("camera")} type="button">Camera</button>
             </div>
           </div>
+          {inputMode === "upload" ? <label className="group col-span-full flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/55 px-3 text-center transition hover:bg-white/85 focus-within:ring-2 focus-within:ring-[var(--accent)] lg:min-h-20 lg:flex-col lg:gap-0 lg:rounded-[1.5rem] lg:px-4">
+              <Upload aria-hidden="true" className="h-4 w-4 text-[var(--accent)]" /><span className="text-xs font-semibold lg:text-sm">Choose image</span><span className="hidden mt-1 max-w-full truncate text-[11px] text-[var(--muted)] lg:block">{file?.name ?? "PNG, JPG or WEBP"}</span>
+              <input accept="image/png,image/jpeg,image/webp" className="sr-only" type="file" onChange={handleFileChange} />
+            </label> : <button className={`col-span-full flex h-11 min-w-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 text-xs font-semibold transition ${isCameraActive ? "bg-[var(--foreground)] text-white hover:bg-[#34433f]" : "bg-white/70 hover:bg-white"}`} onClick={isCameraActive ? stopCamera : () => void startCamera()} type="button">
+              <Video aria-hidden="true" className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+              {isCameraActive ? "Stop camera" : "Start camera"}
+            </button>}
+        </div>
+        <div className="mt-3 space-y-2 lg:mt-auto lg:space-y-3 lg:pt-5">
+          {error ? <p className="rounded-xl bg-[#f5d8ce] px-3 py-2 text-[11px] leading-4 text-[#762f20] lg:rounded-2xl lg:text-xs" role="alert">{error}</p> : null}
+          <button className="h-11 w-full rounded-xl bg-[var(--accent)] text-xs font-semibold text-white shadow-[0_12px_24px_rgba(238,105,69,0.24)] transition hover:-translate-y-0.5 hover:bg-[#d95837] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45 lg:h-12 lg:rounded-full lg:text-sm" disabled={inputMode === "camera" || isPending || !selectedPipeline} type="submit">{inputMode === "camera" ? (isCameraActive ? "Detecting live…" : "Camera is off") : isPending ? "Analyzing…" : "Run analysis"}</button>
+          <p className="hidden text-center font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--muted)] lg:block">{connectionMode === "live" ? "Live backend" : connectionMode === "fallback" ? "API offline" : "Connecting"}</p>
+        </div>
+      </form>
 
-          {currentPipeline ? (
-            <div className="rounded-[24px] border border-black/10 bg-white px-4 py-4 text-sm text-black/70">
-              <p className="font-semibold text-[var(--foreground)]">{currentPipeline.name}</p>
-              <p className="mt-2 leading-7">{currentPipeline.summary}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {currentPipeline.sample_outputs.map((output) => (
-                  <span
-                    key={output}
-                    className="rounded-full bg-[var(--accent-soft)] px-3 py-1 font-mono text-xs text-black/70"
-                  >
-                    {output}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {currentPipeline.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-black/5 px-3 py-1 font-mono text-xs text-black/60"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="rounded-[20px] border border-[#d46a4f]/30 bg-[#fff1ec] px-4 py-3 text-sm text-[#8b3b28]">
-              {error}
-            </div>
-          ) : null}
-        </form>
+      <div className="reveal flex min-h-0 flex-col p-4 [--reveal-delay:120ms] md:p-5">
+        <div className="flex shrink-0 items-center justify-between pb-3">
+          <div><p className="text-sm font-semibold">Preview</p><p className="text-[11px] text-[var(--muted)]">Detection overlay</p></div>
+          {result ? <span className="rounded-full bg-[var(--lime)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em]">Complete</span> : null}
+        </div>
+        <div className="vision-preview relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-[#e7e9e1]">
+          {inputMode === "camera" && isCameraActive ? <div className="relative h-full overflow-hidden bg-[#17211f]">
+            <video ref={videoRef} autoPlay className={`h-full w-full object-cover ${isMirrored ? "scale-x-[-1]" : ""}`} muted playsInline />
+            {result && showBoxes ? <svg aria-label="Live detection overlay" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" viewBox={`0 0 ${result.image.width} ${result.image.height}`}>
+              {visibleDetections.map((detection, index) => { const displayX = isMirrored ? result.image.width - detection.box.x - detection.box.width : detection.box.x; return <g key={`${detection.label}-${index}`}><rect fill="none" height={detection.box.height} rx="8" stroke="#ff7a45" strokeWidth="3" width={detection.box.width} x={displayX} y={detection.box.y} /><rect fill="#17211f" height="28" rx="8" width="118" x={displayX} y={Math.max(4, detection.box.y - 32)} /><text fill="white" fontFamily="monospace" fontSize="12" fontWeight="600" x={displayX + 9} y={Math.max(22, detection.box.y - 13)}>{`${detection.label.slice(0, 11)} ${Math.round(detection.confidence * 100)}%`}</text></g>; })}
+            </svg> : null}
+            {showLegend ? <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">{visibleDetections.slice(0, 4).map((detection, index) => <span className="rounded-full bg-[#17211f]/85 px-3 py-1.5 font-mono text-[10px] text-white shadow-lg backdrop-blur" key={`${detection.label}-legend-${index}`}><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[var(--accent)]" />{detection.label.replaceAll("-", " ")}</span>)}</div> : null}
+            <span className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.13em] text-[var(--foreground)] shadow-lg"><span className="h-2 w-2 rounded-full bg-[#58a36d]" />Live</span>
+          </div> : inputMode === "camera" ? <div className="flex h-full flex-col items-center justify-center bg-[#dde3da] text-center"><Video aria-hidden="true" className="h-9 w-9 text-[var(--muted)]" strokeWidth={1.4} /><p className="mt-3 text-sm font-semibold">Camera is ready</p><p className="mt-1 text-xs text-[var(--muted)]">Start camera from the control panel.</p></div> : <AnalysisPreview fileName={file?.name} previewDimensions={previewDimensions} previewUrl={previewUrl} result={result} />}
+        </div>
       </div>
 
-      <AnalysisResults
-        result={result}
-        emptyDescription="The response panel is intentionally built around detections first. Once the backend returns boxes, confidence, and metrics, you already have the review surface you need for QA, moderation, or human approval flows."
-        emptyEyebrow="Waiting For Detection"
-        emptyTitle="Upload a frame and inspect the detection contract."
-      />
+      <aside className="reveal hidden min-h-0 flex-col bg-[#242f2c] p-5 text-white [--reveal-delay:200ms] lg:flex">
+        <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Results</p><p className="text-[11px] text-white/45">Latest run</p></div><span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /></div>
+        {result ? <>
+          <div className="mt-7 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white/7 p-3"><p className="text-2xl font-semibold">{detections.length}</p><p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/45">Boxes</p></div>
+            <div className="rounded-2xl bg-white/7 p-3"><p className="text-2xl font-semibold">{segmentations.length}</p><p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/45">Masks</p></div>
+          </div>
+          <div className="mt-6 min-h-0 space-y-2 overflow-hidden">
+            {[...detections, ...segmentations].slice(0, 5).map((item, index) => <div className="flex items-center justify-between rounded-2xl bg-white/6 px-3 py-3" key={`${item.label}-${index}`}><span className="truncate text-sm capitalize">{item.label.replaceAll("-", " ")}</span><span className="font-mono text-xs text-white/55">{Math.round(item.confidence * 100)}%</span></div>)}
+          </div>
+          <div className="mt-auto rounded-2xl bg-[var(--violet)] p-3 text-[var(--foreground)]"><p className="truncate text-xs font-semibold">{result.pipeline.name}</p><p className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] opacity-60">{result.image.width} × {result.image.height}</p></div>
+        </> : <div className="flex flex-1 flex-col justify-center"><ScanLine aria-hidden="true" className="h-10 w-10 text-white/20" strokeWidth={1.4} /><p className="mt-5 text-xl font-medium tracking-[-0.04em]">Results land here.</p><p className="mt-2 text-sm leading-6 text-white/45">Add an image and run the pipeline.</p></div>}
+      </aside>
+
+      <button aria-expanded={isSettingsOpen} aria-label={isSettingsOpen ? "Close vision settings" : "Open vision settings"} className="reveal absolute bottom-5 right-5 z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-[var(--foreground)] shadow-[0_12px_36px_rgba(18,31,28,0.24)] transition [--reveal-delay:300ms] hover:rotate-12 hover:bg-[var(--lime)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" onClick={() => setIsSettingsOpen((open) => !open)} type="button">
+        <Settings aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+      </button>
+      {isSettingsOpen ? <div className="reveal absolute bottom-20 right-5 z-20 w-[min(310px,calc(100%-2.5rem))] rounded-[1.75rem] bg-white p-5 shadow-[0_24px_70px_rgba(18,31,28,0.28)]">
+        <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Vision settings</p><p className="text-[11px] text-[var(--muted)]">Tune the live workspace</p></div><button aria-label="Close settings" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#eef1eb]" onClick={() => setIsSettingsOpen(false)} type="button"><X aria-hidden="true" className="h-4 w-4" /></button></div>
+        <div className="mt-5 space-y-4 text-xs">
+          <label className="flex items-center justify-between gap-4"><span>Mirror camera</span><input checked={isMirrored} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setIsMirrored(event.target.checked)} type="checkbox" /></label>
+          <label className="flex items-center justify-between gap-4"><span>Show boxes</span><input checked={showBoxes} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setShowBoxes(event.target.checked)} type="checkbox" /></label>
+          <label className="flex items-center justify-between gap-4"><span>Show legend</span><input checked={showLegend} className="h-4 w-4 accent-[var(--accent)]" onChange={(event) => setShowLegend(event.target.checked)} type="checkbox" /></label>
+          <label className="block"><span className="flex justify-between"><span>Confidence</span><span className="font-mono text-[var(--muted)]">{confidenceThreshold}%</span></span><input className="mt-2 w-full accent-[var(--accent)]" max="90" min="10" step="5" type="range" value={confidenceThreshold} onChange={(event) => setConfidenceThreshold(Number(event.target.value))} /></label>
+          <label className="block"><span className="mb-2 block">Detection speed</span><select className="h-10 w-full cursor-pointer appearance-none rounded-xl bg-[#eef1eb] px-3" value={detectionInterval} onChange={(event) => setDetectionInterval(Number(event.target.value))}><option value="500">Fast</option><option value="900">Balanced</option><option value="1600">Battery saver</option></select></label>
+          <div><span className="mb-2 block">Camera</span><div className="grid grid-cols-2 gap-2"><button className={`h-10 cursor-pointer rounded-xl ${cameraFacing === "user" ? "bg-[var(--foreground)] text-white" : "bg-[#eef1eb]"}`} onClick={() => void changeCameraFacing("user")} type="button">Front</button><button className={`h-10 cursor-pointer rounded-xl ${cameraFacing === "environment" ? "bg-[var(--foreground)] text-white" : "bg-[#eef1eb]"}`} onClick={() => void changeCameraFacing("environment")} type="button">Back</button></div></div>
+        </div>
+      </div> : null}
     </section>
   );
 }

@@ -377,9 +377,9 @@ export function AnalysisPreview({
 
   if (!previewUrl) {
     return (
-      <div className="mt-4 rounded-[20px] border border-black/10 bg-white px-4 py-10 text-center text-sm text-black/55">
-        Drop in a PNG, JPG, or WebP file to preview it here. After analysis, detection
-        boxes and segmentation polygons will render on top of the image.
+      <div className="flex h-full flex-col items-center justify-center bg-[#eef0ea] px-6 text-center text-sm text-black/55">
+        <p className="font-semibold text-[var(--foreground)]">Drop in an image</p>
+        <p className="mt-1 text-xs">PNG, JPG, or WebP</p>
       </div>
     );
   }
@@ -508,7 +508,7 @@ export function AnalysisPreview({
   }
 
   return (
-    <div className="mt-4 overflow-hidden rounded-[20px] border border-black/10 bg-white">
+    <div className="mt-4 overflow-hidden border border-[var(--line)] bg-white">
       <div
         className="relative bg-[linear-gradient(135deg,#fbf4ea_0%,#f4ede2_100%)]"
         style={{ aspectRatio: `${frame.width} / ${frame.height}` }}

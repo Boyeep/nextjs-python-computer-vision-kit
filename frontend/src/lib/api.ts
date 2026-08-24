@@ -77,10 +77,18 @@ export async function analyzeImage(input: {
   formData.append("file", input.file);
   formData.append("pipeline_id", input.pipelineId);
 
-  const response = await fetch(`${API_BASE_URL}/analyze`, {
-    method: "POST",
-    body: formData,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/analyze`, {
+      method: "POST",
+      body: formData,
+    });
+  } catch {
+    throw new Error(
+      `Vision API is offline at ${API_BASE_URL}. Start the full stack with npm run dev.`,
+    );
+  }
 
   if (!response.ok) {
     let message = "Unable to complete analysis.";
