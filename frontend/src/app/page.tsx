@@ -21,7 +21,7 @@ export default function Home() {
             <h1 className="reveal text-[clamp(3.8rem,9.5vw,9rem)] font-medium leading-[0.8] tracking-[-0.085em] [--reveal-delay:150ms]">Look closer.<span className="block text-[var(--accent)]">Build faster.</span></h1>
             <p className="reveal mt-8 max-w-xl text-base leading-7 text-[var(--muted)] [--reveal-delay:240ms] md:text-lg">A clean Next.js and FastAPI foundation for turning images into useful signals.</p>
             <div className="reveal mt-8 flex items-center gap-4 [--reveal-delay:310ms]">
-              <Link className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(23,33,31,0.2)] transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" href="/vision">Analyze an image <ArrowUpRight aria-hidden="true" className="ml-1 inline h-4 w-4" /></Link>
+              <Link className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(23,33,31,0.2)] transition hover:-translate-y-0.5 hover:bg-[#26332f] hover:shadow-[0_18px_38px_rgba(23,33,31,0.24)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]" href="/vision">Analyze an image <ArrowUpRight aria-hidden="true" className="ml-1 inline h-4 w-4" /></Link>
               <span className="hidden font-mono text-xs text-[var(--muted)] sm:inline">PNG · JPG · WEBP</span>
             </div>
           </div>
